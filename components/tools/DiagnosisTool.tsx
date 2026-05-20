@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useMemo, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type Dispatch, type FormEvent, type RefObject, type SetStateAction } from "react";
 import { track } from "@/lib/analytics";
 
 type GradeKey = "A" | "B" | "C" | "D" | "E" | "F";
@@ -18,6 +18,7 @@ type SiteInputs = {
   desiredMention: string;
   competitors: string[];
 };
+type SiteFieldName = "domain" | "customerQuestion" | "comparison";
 type Option = { label: string; value: string };
 type Question = {
   id: string;
@@ -756,34 +757,43 @@ function TextInput({
   sublabel,
   value,
   onChange,
+  onBlur,
+  inputRef,
   placeholder,
   placeholderExamples,
   prefix,
   required,
   error,
+  showError = false,
+  showErrorWhileFocused = false,
   type = "text"
 }: {
   label: string;
   sublabel?: string;
   value: string;
   onChange: (value: string) => void;
+  onBlur?: () => void;
+  inputRef?: RefObject<HTMLInputElement>;
   placeholder?: string;
   placeholderExamples?: string[];
   prefix?: string;
   required?: boolean;
   error?: string;
+  showError?: boolean;
+  showErrorWhileFocused?: boolean;
   type?: string;
 }) {
   const inputId = useId();
   const [isFocused, setIsFocused] = useState(false);
   const streamingExample = useStreamingExample(placeholderExamples);
   const shouldShowStreamingExample = Boolean(streamingExample && !value && !isFocused);
+  const visibleError = Boolean(error && showError && (showErrorWhileFocused || !isFocused));
   const helpId = `${inputId}-help`;
   const errorId = `${inputId}-error`;
-  const describedBy = [sublabel ? helpId : null, error ? errorId : null].filter(Boolean).join(" ") || undefined;
+  const describedBy = [sublabel ? helpId : null, visibleError ? errorId : null].filter(Boolean).join(" ") || undefined;
 
   return (
-    <label className={`vn-field ${error ? "has-error" : ""}`}>
+    <label className={`vn-field ${visibleError ? "has-error" : ""}`}>
       <span className="vn-label">
         {label}
         {required && <span className="vn-required"> *</span>}
@@ -792,15 +802,19 @@ function TextInput({
       <span className="vn-input-shell">
         {prefix && <span className="vn-input-prefix vn-tabular">{prefix}</span>}
         <input
+          ref={inputRef}
           className={`vn-input ${prefix ? "vn-input-prefixed" : ""}`}
           type={type}
           value={value}
           onChange={(event) => onChange(event.target.value)}
           onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
+          onBlur={() => {
+            setIsFocused(false);
+            onBlur?.();
+          }}
           placeholder={shouldShowStreamingExample ? "" : placeholder}
           required={required}
-          aria-invalid={Boolean(error)}
+          aria-invalid={visibleError}
           aria-describedby={describedBy}
         />
         {shouldShowStreamingExample && (
@@ -820,7 +834,7 @@ function TextInput({
           </span>
         )}
       </span>
-      {error && <span id={errorId} className="vn-field-error">{error}</span>}
+      {visibleError && <span id={errorId} className="vn-field-error">{error}</span>}
     </label>
   );
 }
@@ -956,6 +970,15 @@ function DomainInputScreen({
   onSubmit: () => void;
 }) {
   const competitors = inputs.competitors;
+  const domainRef = useRef<HTMLInputElement>(null);
+  const customerQuestionRef = useRef<HTMLInputElement>(null);
+  const comparisonRef = useRef<HTMLInputElement>(null);
+  const [touchedFields, setTouchedFields] = useState<Record<SiteFieldName, boolean>>({
+    domain: false,
+    customerQuestion: false,
+    comparison: false
+  });
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   const examples = useMemo(() => getIndustryExamples(industry), [industry]);
   const keywordExamples = useMemo(() => examples.map((example) => example.keyword), [examples]);
   const customerQuestionExamples = useMemo(() => examples.map((example) => example.customerQuestion), [examples]);
@@ -964,7 +987,42 @@ function DomainInputScreen({
   const customerQuestionError = customerQuestionRequirementMessage(inputs.customerQuestion);
   const comparisonError = hasOwnSite ? "" : comparisonRequirementMessage(competitors);
   const requiredErrors = [domainError, customerQuestionError, comparisonError].filter(Boolean);
+  const visibleRequiredErrors = hasSubmitted ? requiredErrors : [];
   const isValid = requiredErrors.length === 0;
+  function markTouched(field: SiteFieldName) {
+    setTouchedFields((prev) => (prev[field] ? prev : { ...prev, [field]: true }));
+  }
+  function shouldShowFieldError(field: SiteFieldName) {
+    return Boolean(touchedFields[field] || hasSubmitted);
+  }
+  function handleSubmitClick() {
+    if (isValid) {
+      onSubmit();
+      return;
+    }
+
+    setHasSubmitted(true);
+    setTouchedFields((prev) => ({
+      ...prev,
+      ...(hasOwnSite && domainError ? { domain: true } : {}),
+      ...(customerQuestionError ? { customerQuestion: true } : {}),
+      ...(!hasOwnSite && comparisonError ? { comparison: true } : {})
+    }));
+
+    const firstInvalidRef =
+      hasOwnSite && domainError
+        ? domainRef
+        : customerQuestionError
+          ? customerQuestionRef
+          : comparisonError
+            ? comparisonRef
+            : null;
+
+    window.requestAnimationFrame(() => {
+      firstInvalidRef?.current?.focus();
+      firstInvalidRef?.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+    });
+  }
   const update = (key: keyof SiteInputs, value: string) => setInputs((prev) => ({ ...prev, [key]: value }));
   const updateCompetitor = (index: number, value: string) => {
     setInputs((prev) => {
@@ -1000,10 +1058,14 @@ function DomainInputScreen({
                 sublabel="https:// 없이 입력해도 됩니다 · 최소 4자"
                 value={inputs.domain}
                 onChange={(value) => update("domain", value)}
+                onBlur={() => markTouched("domain")}
+                inputRef={domainRef}
                 placeholder="velnoc.com"
                 prefix="https://"
                 required
                 error={domainError}
+                showError={shouldShowFieldError("domain")}
+                showErrorWhileFocused={hasSubmitted}
               />
               <TextInput label="브랜드명" sublabel="AI 검색에서 검색되는 정확한 이름" value={inputs.brand} onChange={(value) => update("brand", value)} placeholder="브랜드명 입력" />
               <TextInput label="핵심 서비스 / 키워드" sublabel="고객이 우리 사업을 찾을 때 쓰는 표현" value={inputs.keyword} onChange={(value) => update("keyword", value)} placeholder="핵심 서비스 입력" placeholderExamples={keywordExamples} />
@@ -1012,10 +1074,14 @@ function DomainInputScreen({
                 sublabel="고객이 ChatGPT·Perplexity에 실제로 입력할 문장 · 최소 8자"
                 value={inputs.customerQuestion}
                 onChange={(value) => update("customerQuestion", value)}
+                onBlur={() => markTouched("customerQuestion")}
+                inputRef={customerQuestionRef}
                 placeholder="고객 질문 입력"
                 placeholderExamples={customerQuestionExamples}
                 required
                 error={customerQuestionError}
+                showError={shouldShowFieldError("customerQuestion")}
+                showErrorWhileFocused={hasSubmitted}
               />
               <TextInput
                 label="어떤 질문에서 우리 브랜드가 나오길 바라나요?"
@@ -1051,10 +1117,14 @@ function DomainInputScreen({
                 sublabel="고객이 ChatGPT·Perplexity에 실제로 입력할 문장 · 최소 8자"
                 value={inputs.customerQuestion}
                 onChange={(value) => update("customerQuestion", value)}
+                onBlur={() => markTouched("customerQuestion")}
+                inputRef={customerQuestionRef}
                 placeholder="고객 질문 입력"
                 placeholderExamples={customerQuestionExamples}
                 required
                 error={customerQuestionError}
+                showError={shouldShowFieldError("customerQuestion")}
+                showErrorWhileFocused={hasSubmitted}
               />
               <TextInput
                 label="어떤 질문에서 우리 브랜드가 나오길 바라나요?"
@@ -1069,9 +1139,13 @@ function DomainInputScreen({
                 sublabel="도메인을 모르면 브랜드명만 적어도 됩니다 · 최소 2자"
                 value={competitors[0] || ""}
                 onChange={(value) => updateCompetitor(0, value)}
+                onBlur={() => markTouched("comparison")}
+                inputRef={comparisonRef}
                 placeholder="브랜드명 또는 도메인"
                 required
                 error={comparisonError}
+                showError={shouldShowFieldError("comparison")}
+                showErrorWhileFocused={hasSubmitted}
               />
               <TextInput
                 label="추가 비교 대상"
@@ -1092,12 +1166,12 @@ function DomainInputScreen({
             </p>
           </div>
 
-          {requiredErrors.length > 0 && (
+          {visibleRequiredErrors.length > 0 && (
             <div id="diagnosis-required-errors" className="vn-validation-callout" role="status" aria-live="polite">
               <p className="vn-micro vn-text-danger">필수 입력 확인</p>
               <p className="vn-small">아래 항목을 채우면 다음 단계로 이동할 수 있습니다.</p>
               <ul>
-                {requiredErrors.map((error) => (
+                {visibleRequiredErrors.map((error) => (
                   <li key={error}>{error}</li>
                 ))}
               </ul>
@@ -1109,10 +1183,9 @@ function DomainInputScreen({
           <button type="button" onClick={onBack} className="vn-btn-secondary">← 처음으로</button>
           <button
             type="button"
-            onClick={onSubmit}
-            disabled={!isValid}
+            onClick={handleSubmitClick}
             className="vn-btn-primary vn-actions-main"
-            aria-describedby={!isValid ? "diagnosis-required-errors" : undefined}
+            aria-describedby={!isValid && hasSubmitted ? "diagnosis-required-errors" : undefined}
           >
             정보 입력 완료 + 설문 진행 →
           </button>

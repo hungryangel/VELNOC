@@ -91,7 +91,7 @@ test("industry examples fade inside inputs and disappear on focus", () => {
   assert.match(source, /setExampleIndex/);
   assert.match(source, /isFocused/);
   assert.match(source, /onFocus=\{\(\) => setIsFocused\(true\)\}/);
-  assert.match(source, /onBlur=\{\(\) => setIsFocused\(false\)\}/);
+  assert.match(source, /onBlur=\{\(\) => \{\s+setIsFocused\(false\);\s+onBlur\?\.\(\);\s+\}\}/);
   assert.match(source, /shouldShowStreamingExample/);
   assert.match(source, /style=\{\{ animationDelay: `\$\{index \* 40\}ms` \}\}/);
   assert.match(source, /examples\.map\(\(example\) => example\.keyword\)/);
@@ -140,12 +140,36 @@ test("domain intake explains required validation before enabling the next step",
   assert.match(source, /role="status"/);
   assert.match(source, /aria-live="polite"/);
   assert.match(source, /필수 입력 확인/);
-  assert.match(source, /aria-invalid=\{Boolean\(error\)\}/);
+  assert.match(source, /aria-invalid=\{visibleError\}/);
   assert.match(source, /aria-describedby=\{describedBy\}/);
-  assert.match(source, /className=\{`vn-field \$\{error \? "has-error" : ""\}`\}/);
+  assert.match(source, /className=\{`vn-field \$\{visibleError \? "has-error" : ""\}`\}/);
   assert.match(styles, /\.vn-field\.has-error \.vn-input/);
   assert.match(styles, /\.vn-field-error/);
   assert.match(styles, /\.vn-validation-callout/);
+});
+
+test("domain intake hides required errors until touch or submit", () => {
+  const source = diagnosisSource();
+
+  assert.match(source, /type SiteFieldName = "domain" \| "customerQuestion" \| "comparison"/);
+  assert.match(source, /const \[touchedFields, setTouchedFields\] = useState/);
+  assert.match(source, /const \[hasSubmitted, setHasSubmitted\] = useState\(false\)/);
+  assert.match(source, /function shouldShowFieldError\(field: SiteFieldName\)/);
+  assert.match(source, /showError=\{shouldShowFieldError\("domain"\)\}/);
+  assert.match(source, /showError=\{shouldShowFieldError\("customerQuestion"\)\}/);
+  assert.match(source, /showError=\{shouldShowFieldError\("comparison"\)\}/);
+  assert.match(source, /onBlur=\{\(\) => markTouched\("domain"\)\}/);
+  assert.match(source, /onBlur=\{\(\) => markTouched\("customerQuestion"\)\}/);
+  assert.match(source, /onBlur=\{\(\) => markTouched\("comparison"\)\}/);
+  assert.match(source, /function handleSubmitClick\(\)/);
+  assert.match(source, /setHasSubmitted\(true\)/);
+  assert.match(source, /firstInvalidRef\?\.current\?\.focus\(\)/);
+  assert.match(source, /const visibleError = Boolean\(error && showError && \(showErrorWhileFocused \|\| !isFocused\)\)/);
+  assert.match(source, /showErrorWhileFocused=\{hasSubmitted\}/);
+  assert.match(source, /className=\{`vn-field \$\{visibleError \? "has-error" : ""\}`\}/);
+  assert.match(source, /aria-invalid=\{visibleError\}/);
+  assert.match(source, /\{visibleError && <span id=\{errorId\} className="vn-field-error">\{error\}<\/span>\}/);
+  assert.doesNotMatch(source, /disabled=\{!isValid\}/);
 });
 
 test("survey and lead forms identify the missing required answer", () => {
