@@ -1259,6 +1259,7 @@ h3 {
 }
 
 .services-grid.pricing-grid {
+  align-items: start;
   grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
@@ -1525,6 +1526,7 @@ h3 {
   border-radius: var(--component-plan-card-radius);
   color: var(--color-ink);
   padding: var(--component-plan-card-padding);
+  position: relative;
 }
 
 .services-grid.pricing-grid .service-plan-card.is-recommended {
@@ -1550,6 +1552,24 @@ h3 {
   font-weight: 600;
   letter-spacing: 0.08em;
   line-height: 1;
+}
+
+.services-grid.pricing-grid .plan-recommended-badge {
+  position: absolute;
+  right: var(--space-xl);
+  top: var(--space-xl);
+}
+
+.services-grid.pricing-grid .service-plan-card.is-recommended {
+  padding-top: calc(var(--component-plan-card-padding) + var(--space-xl));
+}
+
+.services-grid.pricing-grid .service-monthly {
+  flex: initial;
+}
+
+.services-grid.pricing-grid .service-promise {
+  margin: 0;
 }
 
 .tier-reach-badge {
