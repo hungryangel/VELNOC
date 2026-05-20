@@ -1,0 +1,241 @@
+/* ============================================
+   VELNOC Base Styles v1
+   Tag-selector defaults that map to design tokens.
+   Class-based component styles override these.
+   Do not target any class or id in this file.
+   ============================================ */
+
+/* ---------- Root & Body ---------- */
+html {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--font-body-md-size);
+  font-weight: var(--font-body-md-weight);
+  line-height: var(--font-body-md-leading);
+  letter-spacing: var(--font-body-md-tracking);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  color-scheme: light dark;
+}
+
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  margin: 0;
+}
+
+/* ---------- Display (Serif) ---------- */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  color: var(--color-ink);
+  margin: 0 0 var(--space-md) 0;
+  letter-spacing: var(--font-display-md-tracking);
+}
+
+h1 {
+  font-size: var(--font-display-xl-size);
+  font-weight: var(--font-display-xl-weight);
+  line-height: var(--font-display-xl-leading);
+  letter-spacing: var(--font-display-xl-tracking);
+}
+
+h2 {
+  font-size: var(--font-display-lg-size);
+  font-weight: var(--font-display-lg-weight);
+  line-height: var(--font-display-lg-leading);
+  letter-spacing: var(--font-display-lg-tracking);
+}
+
+h3 {
+  font-size: var(--font-display-md-size);
+  font-weight: var(--font-display-md-weight);
+  line-height: var(--font-display-md-leading);
+  letter-spacing: var(--font-display-md-tracking);
+}
+
+h4 {
+  font-size: var(--font-heading-lg-size);
+  font-weight: var(--font-heading-lg-weight);
+  line-height: var(--font-heading-lg-leading);
+  letter-spacing: var(--font-heading-lg-tracking);
+}
+
+h5 {
+  font-size: var(--font-heading-md-size);
+  font-weight: var(--font-heading-md-weight);
+  line-height: var(--font-heading-md-leading);
+  letter-spacing: var(--font-heading-md-tracking);
+}
+
+h6 {
+  font-size: var(--font-heading-sm-size);
+  font-weight: var(--font-heading-sm-weight);
+  line-height: var(--font-heading-sm-leading);
+  letter-spacing: var(--font-heading-sm-tracking);
+}
+
+/* ---------- Body Paragraph (Sans) ---------- */
+p {
+  font-family: var(--font-sans);
+  font-size: var(--font-body-md-size);
+  font-weight: var(--font-body-md-weight);
+  line-height: var(--font-body-md-leading);
+  letter-spacing: var(--font-body-md-tracking);
+  color: var(--color-body);
+  margin: 0 0 var(--space-lg) 0;
+}
+
+/* ---------- Emphasis ---------- */
+strong, b {
+  font-family: var(--font-display);  /* family-shift emphasis per DESIGN.md */
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+em, i {
+  font-style: italic;
+  color: var(--color-ink);
+}
+
+small {
+  font-size: var(--font-body-sm-size);
+  line-height: var(--font-body-sm-leading);
+  color: var(--color-charcoal);
+}
+
+/* ---------- Links ---------- */
+a {
+  color: var(--color-link);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  transition: color 120ms ease, text-decoration-color 120ms ease;
+}
+
+a:hover {
+  color: var(--color-primary-pressed);
+  text-decoration-color: var(--color-primary-pressed);
+}
+
+a:focus-visible {
+  outline: 3px solid var(--color-ring-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+/* ---------- Code (Mono) ---------- */
+code, kbd, samp {
+  font-family: var(--font-mono);
+  font-size: var(--font-code-md-size);
+  font-weight: var(--font-code-md-weight);
+  line-height: var(--font-code-md-leading);
+  letter-spacing: var(--font-code-md-tracking);
+  color: var(--color-ink);
+}
+
+pre {
+  font-family: var(--font-mono);
+  font-size: var(--font-code-md-size);
+  font-weight: var(--font-code-md-weight);
+  line-height: var(--font-code-md-leading);
+  letter-spacing: var(--font-code-md-tracking);
+  color: var(--color-on-dark);
+  background-color: var(--color-surface-dark);
+  padding: var(--space-xl);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  margin: 0 0 var(--space-lg) 0;
+}
+
+pre code {
+  color: inherit;
+  background: none;
+  padding: 0;
+}
+
+/* ---------- Lists ---------- */
+ul, ol {
+  font-family: var(--font-sans);
+  font-size: var(--font-body-md-size);
+  line-height: var(--font-body-md-leading);
+  color: var(--color-body);
+  margin: 0 0 var(--space-lg) 0;
+  padding-left: var(--space-xl);
+}
+
+li {
+  margin: 0 0 var(--space-sm) 0;
+}
+
+/* ---------- Blockquote ---------- */
+blockquote {
+  font-family: var(--font-display);
+  font-size: var(--font-body-lg-size);
+  font-style: italic;
+  color: var(--color-ink);
+  border-left: 2px solid var(--color-hairline-strong);
+  padding-left: var(--space-lg);
+  margin: 0 0 var(--space-lg) 0;
+}
+
+/* ---------- Horizontal Rule ---------- */
+hr {
+  border: none;
+  border-top: 1px solid var(--color-hairline);
+  margin: var(--space-xxl) 0;
+}
+
+/* ---------- Tables ---------- */
+table {
+  font-family: var(--font-sans);
+  font-size: var(--font-body-md-size);
+  line-height: var(--font-body-md-leading);
+  color: var(--color-body);
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0 0 var(--space-lg) 0;
+}
+
+th, td {
+  text-align: left;
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-hairline);
+  vertical-align: top;
+}
+
+th {
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+/* ---------- Selection ---------- */
+::selection {
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+/* ---------- Focus default (anything not a link) ---------- */
+:focus-visible {
+  outline: 3px solid var(--color-ring-focus);
+  outline-offset: 2px;
+}
+
+/* ---------- Media defaults ---------- */
+img, svg, video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ---------- Reduce motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,21 @@
+# Stack Decision
+
+- 결정자: codex
+- 결정 일시: 2026-05-18
+- 프레임워크: Next.js 16 App Router + React 18 + TypeScript
+- 호스팅: Vercel
+- 패키지 매니저: npm
+- 라이브러리 결정:
+  - 스타일링: Tailwind CSS v3 + CSS variables
+  - 차트: Recharts
+  - 폼: react-hook-form + zod
+  - 아이콘: lucide-react
+  - 분석: @vercel/analytics
+  - 이메일: Resend Node SDK
+- 환경변수: `.env.local.example` 참조
+- 비고:
+  - `06-tech-stack-recommendations.md`의 후보 A(Next.js App Router + Vercel)를 채택했습니다.
+  - 최초 권장안은 Next.js 14였으나, npm audit에서 Next 14 계열 high 취약점이 보고되어 보안상 Next.js 16.2.6으로 상향했습니다.
+  - `pnpm`은 현재 환경에 설치되어 있지 않아 npm을 기본으로 사용합니다.
+  - Phase 1의 핵심 요구인 SSG, App Router metadata, route handler 기반 폼 백엔드, Vercel preview 배포 흐름을 가장 적은 마찰로 충족합니다.
+  - 법무 문구와 실제 Resend/Slack/Kakao URL은 운영자가 환경변수와 후속 검토로 채워야 합니다.

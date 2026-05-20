@@ -1,0 +1,281 @@
+/* ============================================
+   VELNOC Design Tokens v1
+   Source of truth: /docs/DESIGN.md
+   Do not hardcode token values anywhere else.
+   ============================================ */
+
+:root {
+  /* ---------- Brand & Accent ---------- */
+  --color-primary: #C7402A;
+  --color-primary-pressed: #A22F1E;
+  --color-hero-glow: #E8694A;
+  --color-hero-warm: #F2A88F;
+  --color-on-primary: #FFFFFF;
+
+  /* ---------- Surface (Light) ---------- */
+  --color-canvas: #F4ECE0;
+  --color-surface-bone: #EBE1D2;
+  --color-surface-card: #FFFFFF;
+  --color-surface-dark: #1B1916;
+  --color-surface-deep: #0A0908;
+  --color-hairline: rgba(27, 25, 22, 0.12);
+  --color-hairline-strong: #1B1916;
+
+  /* ---------- Text (Light) ---------- */
+  --color-ink: #1B1916;
+  --color-body: #3A332D;
+  --color-charcoal: #5A4F46;
+  --color-mute: #6E6155;
+  --color-ash: #8E8276;
+  --color-stone: #BCB1A4;
+
+  /* ---------- On-Dark constants (used on dark surfaces regardless of mode) ---------- */
+  --color-on-dark: #F4ECE0;
+  --color-on-dark-mute: rgba(244, 236, 224, 0.72);
+  --color-on-dark-ash: rgba(244, 236, 224, 0.48);
+
+  /* ---------- Semantic ---------- */
+  --color-success: #2F8E5A;
+  --color-warning: #C28A1E;
+  --color-danger: #9E2A1A;
+  --color-link: #C7402A;
+  --color-ring-focus: rgba(199, 64, 42, 0.45);
+
+  /* ---------- Spacing ---------- */
+  --space-xxs: 2px;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-xxl: 32px;
+  --space-xxxl: 48px;
+  --space-section: 96px;
+  --space-band: 144px;
+
+  /* ---------- Container ---------- */
+  --container-body: 1200px;
+  --container-hero: 1360px;
+  --container-read: 720px;
+
+  /* ---------- Radius ---------- */
+  --radius-none: 0px;
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* ---------- Component: Case Card ---------- */
+  --component-case-card-bg: #1B1916;
+  --component-case-card-border: 0.5px solid rgba(244, 236, 224, 0.10);
+  --component-case-card-radius: var(--radius-md);
+  --component-case-card-padding: 28px 28px 24px;
+  --component-case-card-head-gap: 10px;
+  --component-case-card-head-margin: 12px;
+  --component-case-card-title-margin: 16px;
+  --component-case-card-meta-margin: 20px;
+  --component-case-card-meta-padding: 16px;
+  --component-case-card-meta-col-key: 96px;
+  --component-case-card-meta-gap-row: 6px;
+  --component-case-card-meta-gap-col: 16px;
+  --component-case-card-chip-height: 22px;
+  --component-case-card-chip-padding-inline: 10px;
+  --component-case-card-chip-font-size: 10.5px;
+  --component-case-card-chip-tracking: 0.10em;
+  --component-case-card-status-size: 12px;
+
+  /* ---------- Component: Pricing Plan Card ---------- */
+  --component-plan-card-bg: var(--color-surface-card);
+  --component-plan-card-border: 1px solid var(--color-hairline);
+  --component-plan-card-radius: var(--radius-lg);
+  --component-plan-card-padding: var(--space-xxl);
+  --component-plan-card-featured-bg: var(--color-surface-dark);
+  --component-plan-card-featured-border: 1px solid rgba(244, 236, 224, 0.10);
+  --component-plan-card-featured-shadow: inset 0 2px 0 var(--color-primary);
+  --component-plan-card-stage-bg: var(--color-surface-bone);
+  --component-plan-card-stage-radius: var(--radius-full);
+  --component-plan-card-inset-bg: var(--color-surface-bone);
+  --component-plan-card-inset-radius: var(--radius-md);
+  --component-policy-block-bg: var(--color-surface-bone);
+  --component-policy-block-radius: var(--radius-md);
+  --component-policy-block-padding: var(--space-xl);
+  --component-project-row-radius: var(--radius-md);
+
+  /* ---------- Motion ---------- */
+  --motion-duration-fast: 120ms;
+  --motion-duration-base: 180ms;
+  --motion-duration-slow: 280ms;
+  --motion-ease-standard: cubic-bezier(0.2, 0.75, 0.2, 1);
+  --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-hover-lift: translateY(-2px);
+  --motion-card-lift: translateY(-3px);
+
+  /* ---------- Font Family ---------- */
+  --font-display: "Noto Serif KR", "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-sans: "Pretendard Variable", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* ---------- Typography Tokens (size / weight / line-height / letter-spacing) ---------- */
+  --font-display-xxl-size: 96px;
+  --font-display-xxl-weight: 600;
+  --font-display-xxl-leading: 1.05;
+  --font-display-xxl-tracking: -2.5px;
+
+  --font-display-xl-size: 64px;
+  --font-display-xl-weight: 600;
+  --font-display-xl-leading: 1.05;
+  --font-display-xl-tracking: -1.5px;
+
+  --font-display-lg-size: 44px;
+  --font-display-lg-weight: 600;
+  --font-display-lg-leading: 1.1;
+  --font-display-lg-tracking: -0.8px;
+
+  --font-display-md-size: 30px;
+  --font-display-md-weight: 600;
+  --font-display-md-leading: 1.15;
+  --font-display-md-tracking: -0.5px;
+
+  --font-heading-lg-size: 24px;
+  --font-heading-lg-weight: 600;
+  --font-heading-lg-leading: 1.3;
+  --font-heading-lg-tracking: -0.3px;
+
+  --font-heading-md-size: 20px;
+  --font-heading-md-weight: 600;
+  --font-heading-md-leading: 1.35;
+  --font-heading-md-tracking: -0.2px;
+
+  --font-heading-sm-size: 18px;
+  --font-heading-sm-weight: 600;
+  --font-heading-sm-leading: 1.4;
+  --font-heading-sm-tracking: -0.15px;
+
+  --font-subtitle-size: 18px;
+  --font-subtitle-weight: 500;
+  --font-subtitle-leading: 1.55;
+  --font-subtitle-tracking: 0;
+
+  --font-body-lg-size: 18px;
+  --font-body-lg-weight: 400;
+  --font-body-lg-leading: 1.6;
+  --font-body-lg-tracking: 0;
+
+  --font-body-md-size: 16px;
+  --font-body-md-weight: 400;
+  --font-body-md-leading: 1.55;
+  --font-body-md-tracking: 0;
+
+  --font-body-sm-size: 14px;
+  --font-body-sm-weight: 400;
+  --font-body-sm-leading: 1.5;
+  --font-body-sm-tracking: 0;
+
+  --font-button-md-size: 16px;
+  --font-button-md-weight: 600;
+  --font-button-md-leading: 1.0;
+  --font-button-md-tracking: 0;
+
+  --font-button-sm-size: 14px;
+  --font-button-sm-weight: 600;
+  --font-button-sm-leading: 1.0;
+  --font-button-sm-tracking: 0;
+
+  --font-caption-size: 12px;
+  --font-caption-weight: 400;
+  --font-caption-leading: 1.4;
+  --font-caption-tracking: 0;
+
+  --font-caption-strong-size: 12px;
+  --font-caption-strong-weight: 600;
+  --font-caption-strong-leading: 1.4;
+  --font-caption-strong-tracking: -0.2px;
+
+  --font-code-md-size: 14px;
+  --font-code-md-weight: 400;
+  --font-code-md-leading: 1.5;
+  --font-code-md-tracking: 0;
+
+  --font-code-sm-size: 12px;
+  --font-code-sm-weight: 400;
+  --font-code-sm-leading: 1.5;
+  --font-code-sm-tracking: 0;
+
+  /* ---------- Elevation ---------- */
+  --elevation-flat: none;
+  --elevation-outline: 0 0 0 1px var(--color-hairline);
+  --elevation-drop: 0 8px 24px rgba(27, 25, 22, 0.08);
+
+  /* ---------- Mode flag (introspection) ---------- */
+  --mode: "light";
+}
+
+/* ============================================
+   Dark Mode — auto-switch by OS preference
+   Only canvas/surface/text/hairline tokens swap.
+   Brand accent, hero mesh and on-dark constants
+   stay the same across modes by design.
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Surface */
+    --color-canvas: #0E0D0C;
+    --color-surface-bone: #15110E;
+    --color-surface-card: #1B1916;
+    --color-surface-dark: #241F1A;
+    --color-surface-deep: #000000;
+    --color-hairline: rgba(244, 236, 224, 0.10);
+    --color-hairline-strong: #3A3128;
+
+    /* Text */
+    --color-ink: #F4ECE0;
+    --color-body: rgba(244, 236, 224, 0.92);
+    --color-charcoal: rgba(244, 236, 224, 0.72);
+    --color-mute: rgba(244, 236, 224, 0.60);
+    --color-ash: rgba(244, 236, 224, 0.48);
+    --color-stone: rgba(244, 236, 224, 0.32);
+
+    /* Elevation tweak for dark canvas */
+    --elevation-drop: 0 8px 24px rgba(0, 0, 0, 0.45);
+
+    --mode: "dark";
+  }
+}
+
+/* Manual override hook (for future toggle, not used in S2) */
+[data-theme="dark"] {
+  --color-canvas: #0E0D0C;
+  --color-surface-bone: #15110E;
+  --color-surface-card: #1B1916;
+  --color-surface-dark: #241F1A;
+  --color-surface-deep: #000000;
+  --color-hairline: rgba(244, 236, 224, 0.10);
+  --color-hairline-strong: #3A3128;
+  --color-ink: #F4ECE0;
+  --color-body: rgba(244, 236, 224, 0.92);
+  --color-charcoal: rgba(244, 236, 224, 0.72);
+  --color-mute: rgba(244, 236, 224, 0.60);
+  --color-ash: rgba(244, 236, 224, 0.48);
+  --color-stone: rgba(244, 236, 224, 0.32);
+  --elevation-drop: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --mode: "dark";
+}
+
+[data-theme="light"] {
+  --color-canvas: #F4ECE0;
+  --color-surface-bone: #EBE1D2;
+  --color-surface-card: #FFFFFF;
+  --color-surface-dark: #1B1916;
+  --color-surface-deep: #0A0908;
+  --color-hairline: rgba(27, 25, 22, 0.12);
+  --color-hairline-strong: #1B1916;
+  --color-ink: #1B1916;
+  --color-body: #3A332D;
+  --color-charcoal: #5A4F46;
+  --color-mute: #6E6155;
+  --color-ash: #8E8276;
+  --color-stone: #BCB1A4;
+  --mode: "light";
+}

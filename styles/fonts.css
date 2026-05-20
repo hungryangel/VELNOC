@@ -1,0 +1,14 @@
+/* Sans — UI/Body */
+@import "@fontsource-variable/pretendard/index.css";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/600.css";
+
+/* Serif — Display */
+@import "@fontsource/noto-serif-kr/400.css";
+@import "@fontsource/noto-serif-kr/600.css";
+@import "@fontsource/noto-serif-kr/700.css";
+@import "@fontsource/source-serif-4/600.css";
+
+/* Mono — Code/Price/STAGE */
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/600.css";

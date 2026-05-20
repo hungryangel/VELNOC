@@ -1,0 +1,400 @@
+/* ============================================================
+   VELNOC Utility Classes
+   ------------------------------------------------------------
+   DESIGN.md 기준 토큰은 ../styles/tokens.css에 정의
+
+   적용 대상:
+   - velnoc.com           메인 사이트
+   - velnoc-diagnosis     자가 진단 도구 (v7+)
+   - velnoc-simulator     ROI 시뮬레이터 (v7.1+)
+   - velnoc-os            OS 대시보드 (향후, PART 5-4 명세 적용)
+   - velnoc-quant         Quant/Trading 사이트 (향후, PART 5-5 명세)
+
+   사용:
+   - HTML:    <link rel="stylesheet" href="./velnoc-tokens.css">
+   - React:   import './velnoc-tokens.css';
+   - Framer:  외부 코드 → CDN 호스팅 후 link 태그
+
+   변경 정책:
+   - 본 파일에는 토큰 값을 정의하지 않음
+   - 컴포넌트 코드에서 hex 직접 입력 금지 (PART 8 LLM 지침 1번)
+   ============================================================ */
+
+
+/* ============================================================
+   1. Token Source
+   ------------------------------------------------------------
+   Token values and local font loading live in ../styles/tokens.css
+   and ../styles/fonts.css. This file keeps vn-* utility classes only.
+   ============================================================ */
+
+:root {
+  --velnoc-color-primary: var(--color-primary);
+  --velnoc-color-primary-pressed: var(--color-primary-pressed);
+  --velnoc-color-hero-warm: var(--color-hero-warm);
+  --velnoc-color-canvas: var(--color-canvas);
+  --velnoc-color-surface-bone: var(--color-surface-bone);
+  --velnoc-color-surface-card: var(--color-surface-card);
+  --velnoc-color-surface-dark: var(--color-surface-dark);
+  --velnoc-color-surface-deep: var(--color-surface-deep);
+  --velnoc-color-surface-elev-dark: var(--color-surface-dark);
+  --velnoc-color-hairline: var(--color-hairline);
+  --velnoc-color-hairline-strong-dark: var(--color-hairline-strong);
+  --velnoc-color-ink: var(--color-ink);
+  --velnoc-color-body: var(--color-body);
+  --velnoc-color-charcoal: var(--color-charcoal);
+  --velnoc-color-mute: var(--color-mute);
+  --velnoc-color-on-dark: var(--color-on-dark);
+  --velnoc-color-on-dark-mute: var(--color-on-dark-mute);
+  --velnoc-color-on-dark-ash: var(--color-on-dark-ash);
+  --velnoc-color-success: var(--color-success);
+  --velnoc-color-warning: var(--color-warning);
+  --velnoc-color-danger: var(--color-danger);
+  --velnoc-texture-grain: color-mix(in srgb, var(--color-surface-deep) 2%, transparent);
+  --velnoc-font-display: var(--font-display);
+  --velnoc-font-body: var(--font-sans);
+  --velnoc-font-mono: var(--font-mono);
+  --velnoc-font-kr-head: var(--font-display);
+  --velnoc-font-en-head: var(--font-display);
+  --velnoc-font-kr-display: var(--font-display);
+  --velnoc-font-en-display: var(--font-display);
+  --velnoc-type-display-xxl: var(--font-display-xxl-size);
+  --velnoc-type-display-xl: var(--font-display-xl-size);
+  --velnoc-type-heading-lg: var(--font-heading-lg-size);
+  --velnoc-type-subtitle: var(--font-subtitle-size);
+  --velnoc-type-body-md: var(--font-body-md-size);
+  --velnoc-type-button-md: var(--font-button-md-size);
+  --velnoc-type-caption: var(--font-caption-size);
+  --velnoc-rounded-sm: var(--radius-sm);
+  --velnoc-rounded-md: var(--radius-md);
+  --velnoc-rounded-lg: var(--radius-lg);
+  --velnoc-rounded-full: var(--radius-full);
+  --velnoc-radius-sm: var(--radius-sm);
+  --velnoc-radius-md: var(--radius-md);
+  --velnoc-radius-lg: var(--radius-lg);
+  --velnoc-space-1: var(--space-xs);
+  --velnoc-space-2: var(--space-sm);
+  --velnoc-space-3: var(--space-md);
+  --velnoc-space-4: var(--space-lg);
+  --velnoc-space-6: var(--space-xl);
+  --velnoc-space-8: var(--space-xxl);
+  --velnoc-space-10: calc(var(--space-xxl) + var(--space-sm));
+  --velnoc-space-12: var(--space-xxxl);
+  --velnoc-space-16: calc(var(--space-xxxl) + var(--space-lg));
+  --velnoc-space-24: var(--space-section);
+  --velnoc-space-32: calc(var(--space-section) + var(--space-xxl));
+  --velnoc-container-read: var(--container-read);
+  --velnoc-container-body: var(--container-body);
+  --velnoc-stone: var(--color-canvas);
+  --velnoc-surface: var(--color-surface-card);
+  --velnoc-paper: var(--color-surface-card);
+  --velnoc-ink-primary: var(--color-ink);
+  --velnoc-ink-secondary: var(--color-body);
+  --velnoc-ink-tertiary: var(--color-mute);
+  --velnoc-oak: var(--color-primary);
+  --velnoc-oak-soft: var(--color-surface-bone);
+  --velnoc-oak-deep: var(--color-primary-pressed);
+  --velnoc-terracotta: var(--color-primary);
+  --velnoc-terracotta-soft: var(--color-hero-warm);
+  --velnoc-divider: var(--color-hairline);
+  --velnoc-border: var(--color-hairline);
+  --velnoc-border-strong: var(--color-hairline-strong);
+  --velnoc-danger: var(--color-danger);
+  --velnoc-danger-soft: color-mix(in srgb, var(--color-danger) 6%, transparent);
+  --velnoc-focus-ring: var(--color-ring-focus);
+  --velnoc-green: var(--color-primary);
+  --velnoc-green-emph: var(--color-primary);
+  --velnoc-framework-cream: var(--color-canvas);
+  --velnoc-framework-ink: var(--color-ink);
+  --velnoc-framework-border: var(--color-hairline);
+  --velnoc-framework-surface-alt: var(--color-surface-bone);
+  --velnoc-framework-danger-border: color-mix(in srgb, var(--color-danger) 42%, var(--color-surface-card));
+  --velnoc-framework-green: var(--color-primary);
+  --velnoc-framework-green-soft: var(--color-surface-bone);
+  --velnoc-framework-green-border: color-mix(in srgb, var(--color-primary) 42%, var(--color-surface-card));
+  --velnoc-framework-amber: var(--color-warning);
+  --velnoc-framework-success: var(--color-success);
+}
+
+
+/* ============================================================
+   3. Global Base
+   ------------------------------------------------------------
+   `.vn-root` 컨테이너 안에서 시스템 적용
+   격리 사용을 위해 body가 아닌 클래스 스코프 사용
+   ============================================================ */
+
+.vn-root {
+  font-family: var(--velnoc-font-body);
+  background: var(--velnoc-stone);
+  color: var(--velnoc-ink-primary);
+  font-size: 16px;
+  line-height: 1.7;
+  letter-spacing: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.vn-root *,
+.vn-root *::before,
+.vn-root *::after { box-sizing: border-box; }
+
+
+/* ============================================================
+   4. Typography Utilities
+   ------------------------------------------------------------
+   클래스로 호출하여 시스템 타이포 일관 적용
+   ============================================================ */
+
+.vn-head {
+  font-family: var(--velnoc-font-kr-head);
+  font-weight: 400;
+  color: var(--velnoc-ink-primary);
+  letter-spacing: -0.015em;
+}
+
+.vn-display {
+  font-family: var(--velnoc-font-kr-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: var(--velnoc-ink-primary);
+}
+
+.vn-micro {
+  font-family: var(--velnoc-font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.vn-tabular { font-variant-numeric: tabular-nums; }
+
+
+/* ============================================================
+   5. Component Classes
+   ============================================================ */
+
+/* --- Buttons --- */
+
+.vn-btn-primary {
+  background: var(--velnoc-oak);
+  color: var(--velnoc-surface);
+  padding: 14px 22px;
+  border: none;
+  border-radius: var(--velnoc-rounded-full);
+  font: 600 var(--velnoc-type-button-md)/1 var(--velnoc-font-body);
+  letter-spacing: 0;
+  cursor: pointer;
+  transition: background 150ms ease;
+  width: 100%;
+}
+.vn-btn-primary:hover { background: var(--velnoc-oak-deep); }
+.vn-btn-primary:disabled {
+  background: var(--velnoc-divider);
+  color: var(--velnoc-ink-tertiary);
+  cursor: not-allowed;
+}
+.vn-btn-primary:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--velnoc-focus-ring);
+}
+
+.vn-btn-secondary {
+  background: transparent;
+  color: var(--velnoc-ink-primary);
+  padding: 14px 22px;
+  border: 0.5px solid var(--velnoc-border-strong);
+  border-radius: var(--velnoc-rounded-full);
+  font: 600 var(--velnoc-type-button-md)/1 var(--velnoc-font-body);
+  letter-spacing: 0;
+  cursor: pointer;
+  transition: background 150ms ease;
+  width: 100%;
+}
+.vn-btn-secondary:hover { background: var(--velnoc-oak-soft); }
+
+/* Editorial CTA — Manifesto/Origin/시뮬레이터 결과 페이지 한정 */
+.vn-btn-editorial {
+  background: var(--velnoc-terracotta);
+  color: var(--velnoc-surface);
+  padding: 14px 22px;
+  border: none;
+  border-radius: var(--velnoc-rounded-full);
+  font: 600 var(--velnoc-type-button-md)/1 var(--velnoc-font-body);
+  letter-spacing: 0;
+  cursor: pointer;
+  transition: opacity 150ms ease;
+  width: 100%;
+}
+.vn-btn-editorial:hover { opacity: 0.88; }
+
+.vn-link-ghost {
+  color: var(--velnoc-oak);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 0.5px;
+  cursor: pointer;
+}
+
+
+/* --- Inputs --- */
+
+.vn-input {
+  background: var(--velnoc-paper);
+  color: var(--velnoc-ink-primary);
+  border: 0.5px solid var(--velnoc-border);
+  border-radius: var(--velnoc-rounded-full);
+  padding: 11px 14px;
+  font: 400 14px/1 var(--velnoc-font-body);
+  width: 100%;
+  transition: border-color 150ms ease;
+}
+.vn-input:focus {
+  outline: none;
+  border-color: var(--velnoc-oak);
+  box-shadow: 0 0 0 3px var(--velnoc-focus-ring);
+}
+.vn-input::placeholder { color: var(--velnoc-ink-tertiary); }
+
+
+/* --- Cards --- */
+
+.vn-card {
+  background: var(--velnoc-surface);
+  border: 0.5px solid var(--velnoc-divider);
+  border-radius: var(--velnoc-radius-lg);
+  padding: 24px;
+}
+
+/* Featured: 상단 oak strap */
+.vn-card-featured {
+  background: var(--velnoc-surface);
+  border: 0.5px solid var(--velnoc-divider);
+  border-top: 2px solid var(--velnoc-oak);
+  border-radius: 0 0 var(--velnoc-radius-lg) var(--velnoc-radius-lg);
+  padding: 24px;
+}
+
+/* Editorial Block — Display 모드용, 페이지당 1회 한정 */
+.vn-card-editorial {
+  background: var(--velnoc-terracotta-soft);
+  border: 0.5px solid var(--velnoc-divider);
+  border-radius: var(--velnoc-radius-lg);
+  padding: 40px;
+}
+
+
+/* --- Option Button (라디오/체크박스 대체) --- */
+
+.vn-option-btn {
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  background: var(--velnoc-surface);
+  color: var(--velnoc-ink-secondary);
+  border: 0.5px solid var(--velnoc-divider);
+  border-radius: var(--velnoc-radius-md);
+  font: 400 14px/1.4 var(--velnoc-font-body);
+  cursor: pointer;
+  transition: all 120ms ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.vn-option-btn:hover {
+  border-color: var(--velnoc-border-strong);
+  color: var(--velnoc-ink-primary);
+}
+.vn-option-btn.selected {
+  background: var(--velnoc-oak-soft);
+  color: var(--velnoc-ink-primary);
+  border-color: var(--velnoc-oak);
+  font-weight: 500;
+}
+
+
+/* --- Pull Quote --- */
+
+.vn-quote {
+  font: italic 500 24px/1.4 var(--velnoc-font-en-head);
+  color: var(--velnoc-ink-primary);
+  border-left: 2px solid var(--velnoc-oak);
+  padding: 8px 0 8px 20px;
+  margin: 32px 0;
+}
+
+.vn-quote-display {
+  font: italic 400 40px/1.25 var(--velnoc-font-en-display);
+  color: var(--velnoc-ink-primary);
+  background: var(--velnoc-terracotta-soft);
+  padding: 40px;
+  border-radius: var(--velnoc-radius-lg);
+  margin: 32px 0;
+}
+
+
+/* ============================================================
+   6. Animations
+   ============================================================ */
+
+@keyframes vnFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.vn-fade-in { animation: vnFadeIn 0.4s ease forwards; }
+
+@keyframes vnDotPulse {
+  0%, 100% { opacity: 0.4; }
+  50%      { opacity: 1; }
+}
+.vn-dot-pulse { animation: vnDotPulse 1.4s ease-in-out infinite; }
+
+.vn-bar-fill { transition: width 1.1s cubic-bezier(0.16, 1, 0.3, 1); }
+
+
+/* ============================================================
+   7. Utilities
+   ============================================================ */
+
+.vn-scroll {
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.vn-scroll::-webkit-scrollbar { display: none; }
+
+.vn-grain {
+  background-image: radial-gradient(var(--velnoc-texture-grain) 1px, transparent 1px);
+  background-size: 3px 3px;
+}
+
+
+/* ============================================================
+   8. OS Dashboard Variant (PART 5-4 명세)
+   ------------------------------------------------------------
+   OS 대시보드는 데이터 밀도가 높아 spacing 한 단계 축소
+   .vn-root.vn-os 으로 스코프 적용
+   ============================================================ */
+
+.vn-root.vn-os {
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.vn-root.vn-os .vn-card,
+.vn-root.vn-os .vn-card-featured {
+  padding: var(--velnoc-space-4);  /* 24px → 16px */
+  border-radius: var(--velnoc-radius-md);
+}
+
+.vn-root.vn-os .vn-btn-primary,
+.vn-root.vn-os .vn-btn-secondary {
+  padding: 10px 16px;
+  font-size: 13px;
+}
+
+/* OS는 테라코타 미사용 */
+.vn-root.vn-os .vn-btn-editorial,
+.vn-root.vn-os .vn-card-editorial { display: none; }
