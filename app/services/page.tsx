@@ -65,9 +65,52 @@ function ServiceCard({ service }: { service: (typeof services)[number] }) {
   );
 }
 
-export default function ServicesPage() {
+type ServiceItem = (typeof services)[number];
+
+function SiteFoundationCard({ service }: { service: ServiceItem }) {
   return (
-    <>
+    <article id="site-card" className="site-foundation-card">
+      <div className="pricing-step-head">
+        <p className="micro">STEP 1 · 검색·AI가 읽을 수 있는 기반 세우기</p>
+        <div>
+          <h3>{service.name}</h3>
+          <p>새로 만들거나, 기존 사이트를 벨녹식으로 다시 정비합니다.</p>
+        </div>
+      </div>
+      <div className="site-foundation-entry-grid">
+        <div>
+          <strong>Site · New</strong>
+          <span>신규 구축</span>
+          <em>150~300만원 (1회)</em>
+          <p>사이트가 아직 없는 분께</p>
+        </div>
+        <div>
+          <strong>Site · Retrofit</strong>
+          <span>기존 사이트 AEO·GEO 세팅</span>
+          <em>80~150만원 (1회)</em>
+          <p>사이트는 있지만 검색·AI에서 투명 인간인 분께</p>
+        </div>
+      </div>
+      <div className="site-foundation-footer">
+        <div>
+          <p className="micro service-section-label">공통 포함</p>
+          <ul>
+            <li>12개월 Seed 동행</li>
+            <li>사이트 1주년 점검 콜 30분</li>
+          </ul>
+        </div>
+        <ButtonLink href={service.href} variant="secondary">{service.cta}</ButtonLink>
+      </div>
+    </article>
+  );
+}
+
+export default function ServicesPage() {
+  const siteService = services.find((service) => service.id === "site");
+  const subscriptionServices = services.filter((service) => service.id !== "site");
+
+  return (
+    <div className="services-page">
       <JsonLd data={servicesJsonLd()} />
       <Hero
         title="자산을 만들고, 매월 살아있게 확인합니다."
@@ -75,31 +118,18 @@ export default function ServicesPage() {
         primary={{ label: "벨녹 자가 진단 시작 →", href: "/tools/diagnosis" }}
       />
 
-      <Section eyebrow="PRICING · 벨녹 5단계별 상품" title="어디 단계인지 모르시면 먼저 확인하세요." muted>
-        <div id="subscribe" className="services-grid pricing-grid">
-          {services.map((service) => (
-            <ServiceCard key={service.id} service={service} />
-          ))}
-        </div>
-        <div className="subscription-policy body-copy">
-          <h3>운영 정책 — 모든 구독 공통</h3>
-          <ul>
-            <li><span>운영 일시정지 가능:</span>사정이 생기면 운영만 멈추고, 만든 자동화·콘텐츠는 그대로 유지합니다.</li>
-            <li><span>약정 종료 후 자동으로 월 단위 갱신됩니다.</span>갱신 시점에 언제든 중단·변경 가능합니다.</li>
-            <li><span>Site 구매로 Seed 12개월을 마친 후 Pulse로 이어가시는 분은</span>약정 없이 월 단위로 시작합니다.</li>
-          </ul>
-        </div>
-        <div className="project-lineup service-project-lineup">
-          <p className="micro">더 큰 자산이 필요하신가요</p>
-          <div className="project-lineup-grid">
-            {projectLines.map((project) => (
-              <a key={project.id} id={project.id} href={project.href}>
-                <strong>{project.name}</strong>
-                <span className="project-price">{project.id === "os" ? `${project.price} (별도 견적)` : `${project.price} (1회)`}</span>
-                <em className="project-desc">{project.id === "studio" ? "MVP·프로토타입 (4주)" : "산업 특화 운영체계"}</em>
-              </a>
-            ))}
-          </div>
+      <Section
+        eyebrow="PRICING · 벨녹 상품 구조"
+        title="AI 시대의 광고와 마케팅은, 읽히는 기반 위에서 작동합니다."
+        muted
+      >
+        <p className="lead services-lead">
+          사이트가 없거나, 기존 사이트가 검색과 AI에게 읽히지 않는다면 구독보다 먼저 기반을 세워야 합니다.
+          <br />
+          벨녹은 먼저 사업 정보를 구조화하고, 그 위에서 매월의 성장 신호를 관리합니다.
+        </p>
+        <div className="pricing-flow">
+          {siteService && <SiteFoundationCard service={siteService} />}
         </div>
       </Section>
 
@@ -121,7 +151,7 @@ export default function ServicesPage() {
               <li>호스팅 비용 (Vercel Hobby 무료, 트래픽 증가 시 Pro 월 약 3만원)</li>
               <li>CMS 비용 (Notion 무료, Sanity 무료 또는 트래픽 따라 월 4만원~)</li>
             </ul>
-            <p><strong>사장님 명의로 모든 권한을 이전합니다.</strong><br />벨녹은 도메인·호스팅·CMS 관리비를 별도로 받지 않습니다.<br />원하시면 언제든 다른 업체로 옮기실 수 있습니다.</p>
+            <p><strong>모든 권한은 고객 명의로 이전합니다.</strong><br />벨녹은 도메인·호스팅·CMS 관리비를 별도로 받지 않습니다.<br />원하시면 언제든 다른 업체로 옮기실 수 있습니다.</p>
           </div>
         </div>
       </Section>
@@ -132,16 +162,16 @@ export default function ServicesPage() {
             <h3>기본 스택</h3>
             <ul>
               <li><strong>프레임워크:</strong> Next.js (React 기반 정적/서버 렌더링)</li>
-              <li><strong>호스팅:</strong> Vercel (사장님 명의 계정)</li>
-              <li><strong>콘텐츠 관리:</strong> Notion 또는 Sanity (사장님이 직접 글 쓰실 수 있도록)</li>
-              <li><strong>도메인:</strong> 사장님 명의로 직접 등록</li>
+              <li><strong>호스팅:</strong> Vercel (고객 명의 계정)</li>
+              <li><strong>콘텐츠 관리:</strong> Notion 또는 Sanity (직접 콘텐츠를 관리할 수 있도록)</li>
+              <li><strong>도메인:</strong> 고객 명의로 직접 등록</li>
             </ul>
           </div>
           <div className="card body-copy">
             <h3>왜 이 스택인가요</h3>
             <p><strong>서버 사이드 렌더링</strong><br />ChatGPT·Perplexity 같은 AI 크롤러는 무거운 JavaScript가 로드되기를 끝까지 기다리지 않습니다. Next.js는 페이지를 미리 만들어두는 방식이라 AI가 첫 응답에서 바로 텍스트를 읽습니다.</p>
             <p><strong>정확한 schema.org 마크업</strong><br />사업 정보(이름·위치·서비스·가격·운영자)를 AI가 읽을 언어로 번역하는 작업입니다. Next.js는 페이지 타입별 schema를 코드로 한 번 정의해 모든 페이지에 일관 적용합니다.</p>
-            <p><strong>우리가 쓰는 도구로 만듭니다</strong><br />velnoc.com 자체도 같은 스택으로 만들어졌습니다. 우리가 매일 굴리는 도구로 사장님 사이트도 만든다는 것이 가장 정직한 약속입니다.</p>
+            <p><strong>우리가 쓰는 도구로 만듭니다</strong><br />velnoc.com 자체도 같은 스택으로 만들어졌습니다. 우리가 매일 굴리는 도구로 고객 사이트도 만든다는 것이 가장 정직한 약속입니다.</p>
           </div>
         </div>
       </Section>
@@ -158,7 +188,7 @@ export default function ServicesPage() {
                 <li>메타·OG 태그 정리</li>
                 <li>sitemap.xml · robots.txt · llms.txt 점검·생성</li>
                 <li>1차 출처 연결 (Google Business Profile · 네이버 플레이스 · 디렉토리)</li>
-                <li>사장님 정체성 콘텐츠 1~2건 (About · 운영자 이야기)</li>
+                <li>운영자 정체성 콘텐츠 1~2건 (About · 운영자 이야기)</li>
                 <li>T0 베이스라인 측정 1회 + 12개월 Seed 동행</li>
               </ul>
             </div>
@@ -187,19 +217,77 @@ export default function ServicesPage() {
           <p><strong>견적 결정 동선</strong><br />자가 진단 → 30분 상담 콜 → 실제 사이트 상태 확인 → 견적 확정</p>
           <p>기존 사이트 상태에 따라 가격 폭이 큽니다 (80~150만원). 견적 전 30분 상담 콜로 정확한 작업 범위를 정합니다.</p>
         </div>
-      </Section>
-
-      <Section eyebrow="SEED · 12개월 이후" title="12개월 Seed 동행이 끝나면" muted>
-        <div className="card body-copy">
+        <div className="site-seed-policy body-copy">
+          <h3>12개월 Seed 동행이 끝나면</h3>
           <p>12개월이 되는 시점에 세 가지 옵션 중에 선택하시면 됩니다.</p>
           <ul>
             <li>유상 Seed 전환 — 월 9만원, 동일한 모니터링 계속</li>
-            <li>Pulse 이상 업그레이드 — 운영 코칭이 필요하실 때</li>
-            <li>종료 — 사이트와 모든 권한은 그대로 사장님 소유</li>
+            <li>Pulse 이상 업그레이드 — 운영 코칭이 필요할 때</li>
+            <li>종료 — 사이트와 모든 권한은 그대로 고객 소유</li>
           </ul>
-          <p>종료를 선택하셔도 사이트는 그대로 작동합니다. Seed는 모니터링·동행이지 사이트 호스팅이 아닙니다.</p>
+          <p>종료를 선택해도 사이트는 그대로 작동합니다. Seed는 모니터링·동행이지 사이트 호스팅이 아닙니다.</p>
         </div>
       </Section>
-    </>
+
+      <Section
+        eyebrow="SUBSCRIBE · 매월 운영"
+        title="기반을 만들었다고 끝나는 것은 아닙니다."
+        muted
+      >
+        <p className="lead services-lead">
+          검색 순위, AI 인용, 콘텐츠 신호는 매월 바뀝니다.
+          <br />
+          벨녹 구독은 만들어진 사이트가 방치되지 않고, 검색과 AI 안에서 계속 움직이도록 관리하는 운영 방식입니다.
+        </p>
+        <div className="pricing-flow">
+          <div className="pricing-bridge body-copy">
+            벨녹의 성장 구독은 VELNOC Site 엔진 위에서 가장 정확하게 작동합니다.
+            <br />
+            기반을 먼저 다진 뒤, 매월의 성장 강도를 선택하세요.
+          </div>
+          <div className="pricing-step-head pricing-step-head-subscribe">
+            <p className="micro">STEP 2 · 매월의 성장 강도 선택하기</p>
+            <p>지어진 자산을 매월 어떻게 굴릴지 선택합니다.</p>
+          </div>
+          <div id="subscribe" className="services-grid pricing-grid subscription-grid">
+            {subscriptionServices.map((service) => (
+              <ServiceCard key={service.id} service={service} />
+            ))}
+          </div>
+        </div>
+        <div className="subscription-policy body-copy">
+          <h3>운영 정책 — 모든 구독 공통</h3>
+          <ul>
+            <li><span>운영 일시정지 가능:</span>사정이 생기면 운영만 멈추고, 만든 자동화·콘텐츠는 그대로 유지합니다.</li>
+            <li><span>약정 종료 후 자동으로 월 단위 갱신됩니다.</span>갱신 시점에 언제든 중단·변경 가능합니다.</li>
+            <li><span>Site 구매로 Seed 12개월을 마친 후 Pulse로 이어가시는 분은</span>약정 없이 월 단위로 시작합니다.</li>
+          </ul>
+        </div>
+      </Section>
+
+      <Section
+        eyebrow="EXPAND · 신호를 제품과 운영체계로 확장하기"
+        title="쌓인 신호는 더 큰 자산으로 이어질 수 있습니다."
+      >
+        <p className="lead services-lead">
+          Site로 기반을 만들고, 구독으로 검색·AI 신호를 쌓았다면 다음 단계는 그 신호를 실제 제품, 서비스, 운영체계로 확장하는 일입니다.
+        </p>
+        <div className="project-lineup service-project-lineup">
+          <div className="project-lineup-grid">
+            {projectLines.map((project) => (
+              <a key={project.id} id={project.id} href={project.href}>
+                <strong>{project.name}</strong>
+                <span className="project-price">{project.id === "os" ? `${project.price} (별도 견적)` : `${project.price} (1회)`}</span>
+                <em className="project-desc">
+                  {project.id === "studio"
+                    ? "검색과 AI에서 확인된 수요를 MVP·프로토타입으로 빠르게 검증합니다. 아이디어를 4주 안에 시연 가능한 제품 흐름으로 바꿉니다."
+                    : "반복되는 운영과 의사결정을 산업 특화 운영체계로 묶습니다. 사이트·콘텐츠·고객 데이터가 실제 업무 자동화로 이어지게 만듭니다."}
+                </em>
+              </a>
+            ))}
+          </div>
+        </div>
+      </Section>
+    </div>
   );
 }

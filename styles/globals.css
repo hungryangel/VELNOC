@@ -1260,7 +1260,7 @@ h3 {
 
 .services-grid.pricing-grid {
   align-items: start;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .process-grid {
@@ -1320,6 +1320,158 @@ h3 {
   font-weight: 700;
   text-decoration: underline;
   text-underline-offset: 4px;
+}
+
+.pricing-flow,
+.home-services-flow {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.pricing-step-head {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.pricing-step-head > .micro {
+  margin: 0;
+  color: var(--color-accent);
+  font-family: var(--font-mono);
+  font-size: var(--font-code-sm-size);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.pricing-step-head h3 {
+  margin: 0;
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: var(--font-display-md-size);
+  line-height: var(--font-display-md-leading);
+  letter-spacing: var(--font-display-md-tracking);
+}
+
+.pricing-step-head p:not(.micro) {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.pricing-step-head-subscribe {
+  margin-top: var(--space-4);
+}
+
+.site-foundation-card {
+  display: grid;
+  gap: var(--space-6);
+  padding: var(--space-7);
+  border: 0.5px solid var(--velnoc-divider);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--color-surface-bone) 88%, var(--color-surface-card)), var(--color-surface-card));
+  color: var(--color-ink);
+}
+
+.site-foundation-entry-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.site-foundation-entry-grid > div {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  border: 0.5px solid var(--velnoc-divider);
+  border-radius: var(--radius-md);
+  background: var(--component-plan-card-inset-bg);
+}
+
+.site-foundation-entry-grid strong {
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: var(--font-heading-md-size);
+  line-height: var(--font-heading-md-leading);
+}
+
+.site-foundation-entry-grid span,
+.site-foundation-entry-grid p {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.site-foundation-entry-grid em {
+  color: var(--color-accent);
+  font-family: var(--font-mono);
+  font-size: clamp(20px, 2vw, 28px);
+  font-style: normal;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.site-foundation-footer {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-5);
+  padding-top: var(--space-5);
+  border-top: 0.5px solid var(--velnoc-divider);
+}
+
+.site-foundation-footer ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  margin: var(--space-2) 0 0;
+  padding-left: 18px;
+  color: var(--color-ink-soft);
+  font-family: var(--font-sans);
+}
+
+.pricing-bridge {
+  max-width: 980px;
+  margin: 0;
+  padding: var(--space-5);
+  border-left: 2px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  background: color-mix(in oklab, var(--color-surface-bone) 68%, transparent);
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.site-seed-policy {
+  max-width: 960px;
+  margin: var(--space-6) 0 0;
+  padding: var(--space-5);
+  border: 0.5px solid var(--velnoc-divider);
+  border-radius: var(--radius-md);
+  background: color-mix(in oklab, var(--color-surface-bone) 58%, transparent);
+}
+
+.site-seed-policy h3 {
+  margin: 0 0 var(--space-3);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  font-size: var(--font-code-sm-size);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.site-seed-policy p {
+  margin: 0;
+}
+
+.site-seed-policy ul {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-3) 0;
+  padding-left: 18px;
 }
 
 .service-plan-card,
@@ -1530,10 +1682,10 @@ h3 {
 }
 
 .services-grid.pricing-grid .service-plan-card.is-recommended {
-  background: var(--component-plan-card-featured-bg);
-  border: var(--component-plan-card-featured-border);
-  box-shadow: var(--component-plan-card-featured-shadow);
-  color: var(--color-on-dark);
+  background: var(--component-plan-card-bg);
+  border: 1px solid var(--color-primary);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-primary) 18%, transparent), var(--elevation-drop);
+  color: var(--color-ink);
 }
 
 .services-grid.pricing-grid .service-plan-card.is-site-card {
@@ -1626,8 +1778,8 @@ h3 {
 }
 
 .services-grid.pricing-grid .service-plan-card.is-recommended .tier-reach-badge {
-  background: color-mix(in oklab, var(--color-on-dark) 10%, transparent);
-  color: var(--color-on-dark);
+  background: var(--velnoc-oak-soft);
+  color: var(--color-accent);
 }
 
 .services-grid.pricing-grid .service-plan-card.is-recommended .service-plan-title,
@@ -1636,7 +1788,7 @@ h3 {
 .services-grid.pricing-grid .service-plan-card.is-recommended .service-promise,
 .services-grid.pricing-grid .service-plan-card.is-recommended .site-entry-grid strong,
 .services-grid.pricing-grid .service-plan-card.is-recommended .project-lineup-grid strong {
-  color: var(--color-on-dark);
+  color: var(--color-ink);
 }
 
 .services-grid.pricing-grid .service-plan-card.is-recommended .body-copy,
@@ -1644,11 +1796,11 @@ h3 {
 .services-grid.pricing-grid .service-plan-card.is-recommended .service-cycle-muted,
 .services-grid.pricing-grid .service-plan-card.is-recommended .service-cycle-note,
 .services-grid.pricing-grid .service-plan-card.is-recommended .service-excluded {
-  color: var(--color-on-dark-mute);
+  color: var(--color-ink-soft);
 }
 
 .services-grid.pricing-grid .service-plan-card.is-recommended .service-monthly {
-  border-top-color: color-mix(in oklab, var(--color-on-dark) 14%, transparent);
+  border-top-color: var(--velnoc-divider);
 }
 
 .services-grid.pricing-grid .service-plan-card.is-recommended .button.button-primary {
@@ -4590,6 +4742,15 @@ h3 {
   }
 
   .footer-bottom {
+    flex-direction: column;
+  }
+
+  .site-foundation-entry-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .site-foundation-footer {
+    align-items: start;
     flex-direction: column;
   }
 

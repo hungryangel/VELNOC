@@ -384,7 +384,7 @@ const DIAGNOSIS_STAGE_DETAILS: Record<StageGrade, DiagnosisStageDetail> = {
 
 3단계에서 키운 콘텐츠와 검색어가 우리 사이트 안에 자산으로
 쌓이면서, 광고를 줄여도 유입이 일정 수준 유지됩니다.
-사장님이 처음으로 광고 예산을 의식적으로 조정할 수 있는 단계입니다.
+{ownerTitle}이 처음으로 광고 예산을 의식적으로 조정할 수 있는 단계입니다.
 한편 AI는 우리 사업을 인식하긴 하지만, 아직 다른 출처와 동등한
 후보 중 하나로만 다룹니다. 먼저 추천되는 출처는 따로 있습니다.
 
@@ -399,7 +399,7 @@ const DIAGNOSIS_STAGE_DETAILS: Record<StageGrade, DiagnosisStageDetail> = {
   F: {
     label: "STAGE 05 · 광고 10% · 자력 90%",
     name: "AI가 먼저 추천함",
-    headline: "사장님이 잠든 사이에도, AI가 우리 사업을 추천 후보로 꺼내는 상태.",
+    headline: "{ownerTitle}이 잠든 사이에도, AI가 우리 사업을 추천 후보로 꺼내는 상태.",
     desc: "이 단계의 위험은 멈춤입니다. 시장과 AI의 기준은 계속 바뀌고, 한 번 만든 추천 자리는 관리하지 않으면 다른 사업이 채워갑니다.",
     nextStep: "이제부터는 다음 단계가 아니라, 이 자리를 지키는 운영이 필요합니다.",
     productLabel: "권장 제품 · Engine 월 169만 원",
@@ -418,7 +418,7 @@ AI는 우리 사업을 답으로 제시하는 자리입니다.
 ② 인용 패턴 분석 — AI가 어떤 맥락에서 우리 사업을 꺼내는지 읽고, 약한 맥락을 보강
 ③ 변화 대응 — 검색 알고리즘과 AI 모델 업데이트에 맞춰 신호와 콘텐츠를 재정렬
 
-여기서 사장님은 더 이상 광고에 끌려다니지 않습니다.
+여기서 {ownerTitle}은 더 이상 광고에 끌려다니지 않습니다.
 광고는 필요할 때 켜는 선택지가 되고, 사업은 시장 안에서 스스로 자라기 시작합니다.`
   }
 };
@@ -683,6 +683,16 @@ function answerIndustry(answers: Answers): IndustryKey | null {
 
 function getIndustryExamples(industry: IndustryKey | null) {
   return INDUSTRY_EXAMPLES[industry || "b2b"];
+}
+
+function getOwnerTitle(industry: IndustryKey | null): string {
+  if (industry === "professional" || industry === "education") return "원장님";
+  return "대표님";
+}
+
+function withOwnerTitle(text: string, ownerTitle: string) {
+  const legacyOwnerTitle = "\uC0AC\uC7A5\uB2D8";
+  return text.replaceAll("{ownerTitle}", ownerTitle).replaceAll(legacyOwnerTitle, ownerTitle);
 }
 
 function useStreamingExample(examples: string[] | undefined) {
@@ -1423,7 +1433,7 @@ function stageServiceHref(grade: StageGrade) {
   return "/services#pulse";
 }
 
-function StageTimeline({ grade }: { grade: StageGrade }) {
+function StageTimeline({ grade, ownerTitle }: { grade: StageGrade; ownerTitle: string }) {
   const activeIndex = STAGE_ORDER.indexOf(grade);
   const previousGrade = activeIndex > 0 ? STAGE_ORDER[activeIndex - 1] : null;
   const nextGrade = activeIndex < STAGE_ORDER.length - 1 ? STAGE_ORDER[activeIndex + 1] : null;
@@ -1431,20 +1441,20 @@ function StageTimeline({ grade }: { grade: StageGrade }) {
   return (
     <div className="vn-stage-timeline" role="list" aria-label="이전 단계, 내 단계, 다음 단계">
       {previousGrade ? (
-        <StageTimelineCard position="before" memoLabel="한 칸 전 단계" detail={DIAGNOSIS_STAGE_DETAILS[previousGrade]} />
+        <StageTimelineCard position="before" memoLabel="한 칸 전 단계" detail={DIAGNOSIS_STAGE_DETAILS[previousGrade]} ownerTitle={ownerTitle} />
       ) : (
         <StageBoundaryCard
           position="before"
           memoLabel="시작 지점"
           title="출발선"
-          body="지금 사장님 사업은 출발선에 있습니다. 다음 한 칸부터 시작합니다."
+          body={`지금 ${ownerTitle} 사업은 출발선에 있습니다. 다음 한 칸부터 시작합니다.`}
         />
       )}
 
-      <StageTimelineCard position="current" memoLabel="현재 사장님 단계" detail={DIAGNOSIS_STAGE_DETAILS[grade]} isCurrent />
+      <StageTimelineCard position="current" memoLabel={`현재 ${ownerTitle} 단계`} detail={DIAGNOSIS_STAGE_DETAILS[grade]} isCurrent ownerTitle={ownerTitle} />
 
       {nextGrade ? (
-        <StageTimelineCard position="after" memoLabel="한 칸 다음 단계" detail={DIAGNOSIS_STAGE_DETAILS[nextGrade]} />
+        <StageTimelineCard position="after" memoLabel="한 칸 다음 단계" detail={DIAGNOSIS_STAGE_DETAILS[nextGrade]} ownerTitle={ownerTitle} />
       ) : (
         <StageBoundaryCard
           position="after"
@@ -1481,12 +1491,14 @@ function StageTimelineCard({
   position,
   memoLabel,
   detail,
-  isCurrent = false
+  isCurrent = false,
+  ownerTitle = "대표님"
 }: {
   position: "before" | "current" | "after";
   memoLabel: string;
   detail: DiagnosisStageDetail;
   isCurrent?: boolean;
+  ownerTitle?: string;
 }) {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const detailId = `stage-detail-${detail.label.slice(6, 8)}`;
@@ -1502,17 +1514,17 @@ function StageTimelineCard({
       <h2 className={isCurrent ? "vn-stage-current-title" : "vn-stage-context-title"}>
         <strong>{stageResultLabel(detail)}</strong>
       </h2>
-      <p className={isCurrent ? "vn-stage-current-headline" : "vn-stage-context-headline"}>{detail.headline}</p>
+      <p className={isCurrent ? "vn-stage-current-headline" : "vn-stage-context-headline"}>{withOwnerTitle(detail.headline, ownerTitle)}</p>
 
       {isCurrent && (
         <div className="vn-stage-slot-list">
           <div>
             <p className="vn-micro vn-text-tertiary">왜 위험한가</p>
-            <p className="vn-small vn-text-secondary">{detail.desc}</p>
+            <p className="vn-small vn-text-secondary">{withOwnerTitle(detail.desc, ownerTitle)}</p>
           </div>
           <div className="vn-stage-next-box">
             <p className="vn-micro vn-text-oak">다음 단계</p>
-            <p className="vn-small">{detail.nextStep}</p>
+            <p className="vn-small">{withOwnerTitle(detail.nextStep, ownerTitle)}</p>
           </div>
           <p className="vn-small vn-text-secondary">
             <strong>{detail.productLabel}</strong>
@@ -1536,7 +1548,7 @@ function StageTimelineCard({
           {detailsOpen && (
             <div id={detailId} className="vn-stage-detail-content">
               {detail.details.split("\n\n").map((block) => (
-                <p key={block}>{block}</p>
+                <p key={block}>{withOwnerTitle(block, ownerTitle)}</p>
               ))}
             </div>
           )}
@@ -1591,6 +1603,7 @@ function ResultScreenStage({
   const leadEmailError = emailRequirementMessage(form.email);
   const canSubmit = !leadEmailError;
   const consultationType = "무료 상세 진단";
+  const ownerTitle = getOwnerTitle(answerIndustry(answers));
   const resultHelper = stageResultHelper(stageGrade);
   const updateForm = (key: keyof LeadForm, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
 
@@ -1651,13 +1664,13 @@ function ResultScreenStage({
 
         <div className="vn-center">
           <h1 className="vn-head vn-section-title">
-            사장님 사업은 지금 <strong className="vn-text-oak">{currentStageLabel}</strong> 단계입니다.
+            {ownerTitle} 사업은 지금 <strong className="vn-text-oak">{currentStageLabel}</strong> 단계입니다.
           </h1>
           <p className="vn-body vn-text-secondary">{resultHelper}</p>
         </div>
 
         <div className="vn-panel-stack">
-          <StageTimeline grade={stageGrade} />
+          <StageTimeline grade={stageGrade} ownerTitle={ownerTitle} />
 
           <div className="vn-card">
             <h2 className="vn-click-card-title">{cfg.headline}</h2>
@@ -1755,7 +1768,7 @@ function ResultScreenStage({
           <button type="button" onClick={onConsult} className="vn-note-action">상담 시작</button>
           <p className="vn-small vn-text-tertiary vn-center">무료 · 5분 소요 · 연락처 없이 기본 결과 확인</p>
           <div className="vn-center">
-            <Link href="/diagnosis" className="vn-reset-button">다시 진단하기</Link>
+            <Link href="/tools/diagnosis" className="vn-reset-button">다시 진단하기</Link>
           </div>
         </div>
       </div>

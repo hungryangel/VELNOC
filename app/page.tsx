@@ -55,6 +55,9 @@ const processSteps = [
 ];
 
 export default function HomePage() {
+  const siteService = services.find((service) => service.id === "site");
+  const subscriptionServices = services.filter((service) => service.id !== "site");
+
   return (
     <>
       <RevealOnScroll />
@@ -142,61 +145,91 @@ export default function HomePage() {
             어디 단계인지 모르시면 먼저 → <a href="/tools/diagnosis">벨녹 자가 진단 (5분, 무료)</a>
           </p>
           <p className="lead services-lead reveal-order-1" data-reveal-child>
-            Site · Seed · Pulse · Signal · Engine은 각각 지금 단계에 맞춰 일합니다.
+            먼저 검색과 AI가 읽을 수 있는 기반을 세우고, 그 위에서 매월의 성장 강도를 선택합니다.
             <br />
             벨녹 5단계가 위치를 보여줬다면, 상품 구조는 그 단계에서 무엇이 움직이는가를 책임집니다.
           </p>
-          <div className="services-grid pricing-grid">
-            {services.map((service, index) => (
-              <article key={service.name} className={`service-plan-card reveal-order-${index + 2} ${service.featured ? "is-recommended" : ""} ${service.id === "site" ? "is-site-card" : ""}`} data-reveal-child>
-                {service.featured && <p className="micro card-meta plan-recommended-badge">RECOMMENDED</p>}
-                <p className="tier-reach-badge">{service.reachBadge}</p>
-                <h3 className="service-plan-title">{service.name}</h3>
-                <p className="service-price"><span>{service.price}</span></p>
-                <p className="body-copy">{service.persona}</p>
-                {service.id === "site" && (
-                  <div className="site-entry-grid">
-                    <div>
-                      <strong>Site · New</strong>
-                      <span>신규 구축</span>
-                      <em>150~300만원 (1회)</em>
-                      <p>사이트가 아직 없는 분께</p>
-                    </div>
-                    <div>
-                      <strong>Site · Retrofit</strong>
-                      <span>기존 사이트 AEO·GEO 세팅</span>
-                      <em>80~150만원 (1회)</em>
-                      <p>사이트는 있지만 검색·AI에서 투명 인간인 분께</p>
-                    </div>
+          <div className="home-services-flow">
+            {siteService && (
+              <article className="site-foundation-card home-site-foundation reveal-order-2" data-reveal-child>
+                <div className="pricing-step-head">
+                  <p className="micro">STEP 1 · 검색·AI가 읽을 수 있는 기반 세우기</p>
+                  <div>
+                    <h3>{siteService.name}</h3>
+                    <p>새로 만들거나, 기존 사이트를 벨녹식으로 다시 정비합니다.</p>
                   </div>
-                )}
-                <div className="service-monthly">
-                  <p className="micro service-section-label">
-                    {service.id === "site" ? "공통 포함" : service.id === "seed" ? "포함" : "매월"}
-                    {"minCycle" in service && service.minCycle && <span className="service-cycle-muted"> · {service.minCycle}</span>}
-                  </p>
-                  <ul>
-                    {service.monthly.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
                 </div>
-                {"excluded" in service && service.excluded && (
-                  <p className="service-excluded">비포함: {service.excluded}</p>
-                )}
-                {"cycleNote" in service && service.cycleNote && (
-                  <p className="service-cycle-note">{service.cycleNote}</p>
-                )}
-                <p className="service-promise">{service.promise}</p>
-                {service.disabledCta ? (
-                  <p className="service-disabled-cta">{service.cta}</p>
-                ) : (
-                  <ButtonLink href={service.href} variant={service.featured ? "primary" : "secondary"}>{service.cta}</ButtonLink>
-                )}
+                <div className="site-foundation-entry-grid">
+                  <div>
+                    <strong>Site · New</strong>
+                    <span>신규 구축</span>
+                    <em>150~300만원 (1회)</em>
+                    <p>사이트가 아직 없는 분께</p>
+                  </div>
+                  <div>
+                    <strong>Site · Retrofit</strong>
+                    <span>기존 사이트 AEO·GEO 세팅</span>
+                    <em>80~150만원 (1회)</em>
+                    <p>사이트는 있지만 검색·AI에서 투명 인간인 분께</p>
+                  </div>
+                </div>
+                <div className="site-foundation-footer">
+                  <div>
+                    <p className="micro service-section-label">공통 포함</p>
+                    <ul>
+                      <li>12개월 Seed 동행</li>
+                      <li>사이트 1주년 점검 콜 30분</li>
+                    </ul>
+                  </div>
+                  <ButtonLink href={siteService.href} variant="secondary">{siteService.cta}</ButtonLink>
+                </div>
               </article>
-            ))}
+            )}
+            <div className="pricing-bridge body-copy reveal-order-3" data-reveal-child>
+              벨녹의 성장 구독은 VELNOC Site 엔진 위에서 가장 정확하게 작동합니다.
+              <br />
+              기반을 먼저 다진 뒤, 매월의 성장 강도를 선택하세요.
+            </div>
+            <div className="pricing-step-head pricing-step-head-subscribe reveal-order-4" data-reveal-child>
+              <p className="micro">STEP 2 · 매월의 성장 강도 선택하기</p>
+              <p>지어진 자산을 매월 어떻게 굴릴지 선택합니다.</p>
+            </div>
+            <div className="services-grid pricing-grid subscription-grid">
+              {subscriptionServices.map((service, index) => (
+                <article key={service.name} className={`service-plan-card reveal-order-${index + 2} ${service.featured ? "is-recommended" : ""} ${service.id === "site" ? "is-site-card" : ""}`} data-reveal-child>
+                  {service.featured && <p className="micro card-meta plan-recommended-badge">RECOMMENDED</p>}
+                  <p className="tier-reach-badge">{service.reachBadge}</p>
+                  <h3 className="service-plan-title">{service.name}</h3>
+                  <p className="service-price"><span>{service.price}</span></p>
+                  <p className="body-copy">{service.persona}</p>
+                  <div className="service-monthly">
+                    <p className="micro service-section-label">
+                      {service.id === "seed" ? "포함" : "매월"}
+                      {"minCycle" in service && service.minCycle && <span className="service-cycle-muted"> · {service.minCycle}</span>}
+                    </p>
+                    <ul>
+                      {service.monthly.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  {"excluded" in service && service.excluded && (
+                    <p className="service-excluded">비포함: {service.excluded}</p>
+                  )}
+                  {"cycleNote" in service && service.cycleNote && (
+                    <p className="service-cycle-note">{service.cycleNote}</p>
+                  )}
+                  <p className="service-promise">{service.promise}</p>
+                  {service.disabledCta ? (
+                    <p className="service-disabled-cta">{service.cta}</p>
+                  ) : (
+                    <ButtonLink href={service.href} variant={service.featured ? "primary" : "secondary"}>{service.cta}</ButtonLink>
+                  )}
+                </article>
+              ))}
+            </div>
           </div>
-          <div className="project-link project-lineup reveal-order-7" data-reveal-child>
+          <div className="project-link project-lineup reveal-order-8" data-reveal-child>
             <p className="micro">더 큰 자산이 필요하신가요</p>
             <div className="project-lineup-grid">
               {projectLines.map((project) => (
