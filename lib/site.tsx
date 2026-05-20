@@ -61,7 +61,7 @@ export const pageMeta = {
     path: "/about/origin",
     title: "Origin Story — 진짜가 가짜에게 다시 이기는 게임",
     description:
-      "장모님의 오프라인 홍삼 가게에서 시작된 벨녹의 미션. 광고비로 만들어진 가짜가 정직한 진짜를 이기던 게임에서, LLM 시대에는 어떻게 게임이 바뀌는가."
+      "실력과 진심이 자본과 광고에 밀려나던 게임을 뒤집기 위해 시작된 벨녹의 이야기. LLM 시대에 진짜 신호가 다시 보상받는 이유."
   },
   manifesto: {
     path: "/manifesto",

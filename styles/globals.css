@@ -688,6 +688,7 @@ h1 {
 }
 
 .display-head {
+  color: var(--color-on-primary);
   font-family: var(--font-kr-display);
   font-size: 56px;
   font-weight: 700;
@@ -697,6 +698,7 @@ h1 {
 }
 
 .display-en {
+  color: color-mix(in srgb, var(--color-on-primary) 88%, transparent);
   font-family: var(--font-en-display);
   font-size: 40px;
   font-style: italic;
@@ -1032,10 +1034,13 @@ h3 {
 }
 
 .table-wrap {
-  overflow-x: auto;
+  background: var(--color-surface);
   border: 0.5px solid var(--velnoc-divider);
   border-radius: var(--radius-lg);
-  background: var(--color-surface);
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  width: 100%;
 }
 
 .compare-table {
@@ -1065,6 +1070,18 @@ h3 {
   background: var(--color-accent-soft);
   color: var(--color-ink);
   font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .compare-table {
+    min-width: 0;
+    table-layout: fixed;
+  }
+
+  .compare-table th,
+  .compare-table td {
+    overflow-wrap: anywhere;
+  }
 }
 
 .compare-status {
