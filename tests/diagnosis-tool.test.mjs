@@ -11,6 +11,10 @@ function globalStyles() {
   return readFileSync(resolve("styles/globals.css"), "utf8");
 }
 
+function diagnosisPageSource() {
+  return readFileSync(resolve("app/tools/diagnosis/page.tsx"), "utf8");
+}
+
 test("diagnosis tool no longer exposes fake real-time analysis", () => {
   const source = diagnosisSource();
 
@@ -43,6 +47,39 @@ test("diagnosis result sends stage users to the service anchors", () => {
   assert.doesNotMatch(source, /wantsQuarterlyReview/);
   assert.doesNotMatch(source, /3개월 후 AI 검색 가시성 재진단 안내/);
   assert.doesNotMatch(source, /vn-followup-option/);
+});
+
+test("diagnosis v2 uses barrier scoring with branched survey questions", () => {
+  const source = diagnosisSource();
+
+  for (const key of [
+    "digital_channel",
+    "ad_dependency",
+    "search_visibility",
+    "ai_recognition",
+    "branch_content",
+    "ai_citation",
+    "monthly_leads"
+  ]) {
+    assert.match(source, new RegExp(`id: "${key}"`));
+  }
+
+  assert.match(source, /type BarrierReason =/);
+  assert.match(source, /type IndustryCluster = "professional_edu" \| "fnb_retail" \| "b2b_industrial"/);
+  assert.match(source, /function getIndustryCluster\(industry: IndustryKey \| null\): IndustryCluster \| null/);
+  assert.match(source, /showIf: \(answers\) => answerString\(answers, "ads"\) !== "none"/);
+  assert.match(source, /getBranchContentQuestion\(answerIndustry\(answers\)\)/);
+  assert.match(source, /const D = \(\{ none: 0, platform: 1, site: 2, content: 3 \}/);
+  assert.match(source, /const T = D \+ A \+ V \+ R \+ C \+ O \+ B/);
+  assert.match(source, /if \(D === 0\)\s+grade = capGrade\(grade, "C"\)/);
+  assert.match(source, /if \(A === 0\)\s+grade = capGrade\(grade, "C"\)/);
+  assert.match(source, /if \(R === 0\)\s+grade = capGrade\(grade, "D"\)/);
+  assert.match(source, /if \(C === 0\)\s+grade = capGrade\(grade, "E"\)/);
+  assert.match(source, /BARRIER_REASON_COPY/);
+  assert.match(source, /function getSensitivityInsight\(result: ScoreResult\): SensitivityInsight \| null/);
+  assert.match(source, /className="vn-tabular vn-small vn-text-primary"/);
+  assert.doesNotMatch(source, /channelBlock/);
+  assert.doesNotMatch(source, /blockedChannels/);
 });
 
 test("domain intake asks for AI customer questions needed for consulting", () => {
@@ -204,16 +241,61 @@ test("diagnosis option markers use one square check style", () => {
   assert.doesNotMatch(styles, /\.vn-option-marker\.is-check/);
 });
 
-test("website status question follows the selected diagnosis path", () => {
+test("diagnosis v2 survey skips ad dependency and adds industry branch questions", () => {
   const source = diagnosisSource();
 
-  assert.match(source, /label: "현재 고객이 확인할 수 있는 온라인 거점은\?"/);
-  assert.match(source, /\{ label: "자사 사이트 있음 \+ 외부 플랫폼 사용", value: "site_platform" \}/);
-  assert.match(source, /const OWN_SITE_WEBSITE_VALUES = \["basic", "site_platform", "active"\]/);
-  assert.match(source, /const NO_SITE_WEBSITE_VALUES = \["none", "platform"\]/);
-  assert.match(source, /function getWebsiteOptions\(question: Question, hasOwnSite: boolean\)/);
-  assert.match(source, /function isNoSiteWebsiteAnswer\(value: string\)/);
-  assert.match(source, /site_platform: 2/);
-  assert.match(source, /website: isNoSiteWebsiteAnswer\(currentWebsite\) \? currentWebsite : "none"/);
-  assert.doesNotMatch(source, /option\.value === "basic" \|\| option\.value === "active"/);
+  assert.match(source, /id: "ad_dependency"/);
+  assert.match(source, /showIf: \(answers\) => answerString\(answers, "ads"\) !== "none"/);
+  assert.match(source, /function getBranchContentQuestion\(industry: IndustryKey \| null\): Question \| null/);
+  assert.match(source, /professional_edu/);
+  assert.match(source, /fnb_retail/);
+  assert.match(source, /b2b_industrial/);
+  assert.doesNotMatch(source, /getWebsiteOptions/);
+  assert.doesNotMatch(source, /OWN_SITE_WEBSITE_VALUES/);
+  assert.doesNotMatch(source, /NO_SITE_WEBSITE_VALUES/);
+});
+
+test("diagnosis stores recent history and compares previous result", () => {
+  const source = diagnosisSource();
+
+  assert.match(source, /type DiagnosisRecord = \{/);
+  assert.match(source, /type DiagnosisHistory = DiagnosisRecord\[\]/);
+  assert.match(source, /localStorage\.getItem\("velnoc:diagnosisHistory"\)/);
+  assert.match(source, /localStorage\.setItem\("velnoc:diagnosisHistory", JSON\.stringify\(updated\)\)/);
+  assert.match(source, /\[\.\.\.history, record\]\.slice\(-5\)/);
+  assert.match(source, /industry: answerIndustry\(answers\)/);
+  assert.match(source, /const prevRecord = useMemo<DiagnosisRecord \| null>/);
+  assert.match(source, /history\.filter\(\(r\) => r\.date !== today\)\.at\(-1\)/);
+  assert.match(source, /지난 진단 \(\{prevRecord\.date\}\) 대비/);
+  assert.match(source, /gradeDelta > 0/);
+  assert.match(source, /gradeDelta < 0/);
+  assert.match(source, /gradeDelta === 0/);
+  assert.match(source, /function getDaysSinceLastDiagnosis\(\): number \| null/);
+  assert.match(source, /마지막 진단에서 \{days\}일이 지났습니다/);
+});
+
+test("diagnosis result can be shared and loaded from a URL param", () => {
+  const source = diagnosisSource();
+  const pageSource = diagnosisPageSource();
+
+  assert.match(source, /useSearchParams/);
+  assert.match(source, /type ShareableResult = \{/);
+  assert.match(source, /function encodeResult\(result: ScoreResult, industry: IndustryKey \| null\): string/);
+  assert.match(source, /function decodeResult\(encoded: string\): \{ result: Partial<ScoreResult>; industry: string \} \| null/);
+  assert.match(source, /function buildShareUrl\(result: ScoreResult, industry: IndustryKey \| null\): string/);
+  assert.match(source, /return `\$\{window\.location\.origin\}\/tools\/diagnosis\?result=\$\{encoded\}`/);
+  assert.match(source, /const sharedPayload = useMemo\(\(\) => \{/);
+  assert.match(source, /const \[sharedResult, setSharedResult\] = useState<ScoreResult \| null>\(\(\) => sharedPayload\?\.result \?\? null\)/);
+  assert.match(source, /const calculatedResult = useMemo\(\(\) => calcScore\(answers\), \[answers\]\)/);
+  assert.match(source, /const result = sharedResult \?\? calculatedResult/);
+  assert.match(source, /const encoded = searchParams\.get\("result"\)/);
+  assert.match(source, /result: decoded\.result as ScoreResult/);
+  assert.match(source, /useState<"intro" \| "industry" \| "domain" \| "survey" \| "result">\(\(\) => \(sharedPayload \? "result" : "intro"\)\)/);
+  assert.match(source, /function ShareButton\(\{ result, industry \}: \{ result: ScoreResult; industry: IndustryKey \| null \}\)/);
+  assert.match(source, /navigator\.clipboard\.writeText\(url\)/);
+  assert.match(source, /결과 링크 공유하기/);
+  assert.match(source, /링크 복사됨 ✓/);
+  assert.match(source, /<ShareButton result=\{result\} industry=\{industry\} \/>/);
+  assert.match(pageSource, /Suspense/);
+  assert.match(pageSource, /<Suspense/);
 });

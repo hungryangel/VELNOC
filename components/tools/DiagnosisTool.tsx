@@ -1,14 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useMemo, useRef, useState, type Dispatch, type FormEvent, type RefObject, type SetStateAction } from "react";
 import { track } from "@/lib/analytics";
 
-type GradeKey = "A" | "B" | "C" | "D" | "E" | "F";
-type StageGrade = Exclude<GradeKey, "A">;
+type GradeKey = "B" | "C" | "D" | "E" | "F";
+type StageGrade = GradeKey;
 type Answers = Record<string, string | string[] | undefined>;
 type IndustryKey = "retail" | "fnb" | "professional" | "education" | "b2b" | "industrial";
+type IndustryCluster = "professional_edu" | "fnb_retail" | "b2b_industrial";
 type IndustryExample = { keyword: string; customerQuestion: string; desiredMention: string };
 type SiteInputs = {
   domain: string;
@@ -35,167 +36,185 @@ type ScoreResult = {
   grade: GradeKey;
   T: number;
   D: number;
-  M: number;
-  S: number;
+  A: number;
+  V: number;
+  R: number;
+  C: number;
   O: number;
+  B: number;
   sensitivity: boolean;
-  channelBlock: boolean;
-  blockedChannels: string[];
+  barrierReason: BarrierReason;
+};
+
+type BarrierReason =
+  | "no_digital"
+  | "ad_dependent"
+  | "no_ai_recognition"
+  | "no_ai_citation"
+  | "none";
+
+type SensitivityInsight = {
+  dimension: string;
+  action: string;
+  newGrade: GradeKey;
+};
+
+type DiagnosisRecord = {
+  date: string;
+  grade: GradeKey;
+  T: number;
+  D: number;
+  A: number;
+  V: number;
+  R: number;
+  C: number;
+  O: number;
+  B: number;
+  industry: IndustryKey | null;
+};
+
+type DiagnosisHistory = DiagnosisRecord[];
+
+type ShareableResult = {
+  g: GradeKey;
+  t: number;
+  d: number;
+  a: number;
+  v: number;
+  r: number;
+  c: number;
+  o: number;
+  b: number;
+  i: string;
+};
+
+type DomainCheckResult = {
+  alive: boolean;
+  title: string | null;
+  description: string | null;
+  robotsBlocked: boolean;
+  hasMobileViewport: boolean;
+  error: string | null;
+};
+
+type DiagnosisBenchmark = {
+  mostCommon: GradeKey;
+  total: number;
+  hasEnoughData: boolean;
 };
 
 const STEP_DATA: StepData[] = [
   {
     stepNum: 1,
-    title: "사업 기본 정보",
-    sub: "사업의 규모와 운영 기간을 알려주세요.",
+    title: "사업 기반",
+    sub: "사업 기간과 온라인 기반을 확인합니다.",
     icon: "01",
     questions: [
       {
         id: "duration",
-        label: "사업 운영 기간은?",
+        label: "사업을 시작한 지 얼마나 됐나요?",
         type: "single",
         options: [
           { label: "1년 미만", value: "u1" },
-          { label: "1 ~ 3년", value: "1_3" },
-          { label: "3 ~ 7년", value: "3_7" },
-          { label: "7년 이상", value: "o7" }
+          { label: "1~3년", value: "1_3" },
+          { label: "3~5년", value: "3_5" },
+          { label: "5년 이상", value: "o5" }
         ]
       },
       {
-        id: "revenue",
-        label: "월 평균 매출 구간",
-        sublabel: "선택사항 · 정확도 향상을 위해 알려주시면 좋아요",
+        id: "digital_channel",
+        label: "지금 온라인에서 운영 중인 채널은 어떻게 되나요?",
         type: "single",
-        optional: true,
         options: [
-          { label: "500만원 미만", value: "low" },
-          { label: "500만 ~ 2,000만원", value: "mid" },
-          { label: "2,000만 ~ 1억원", value: "high" },
-          { label: "1억원 이상", value: "very_high" },
-          { label: "답변하지 않겠습니다", value: "skip" }
+          { label: "온라인 채널이 없음", value: "none" },
+          { label: "지도·플랫폼만 있음 (스마트플레이스, 카카오맵, 배달앱 등)", value: "platform" },
+          { label: "직접 운영하는 웹사이트가 있음", value: "site" },
+          { label: "웹사이트 + 콘텐츠(블로그·FAQ·소개글)를 꾸준히 업데이트함", value: "content" }
         ]
       }
     ]
   },
   {
     stepNum: 2,
-    title: "디지털 자산 점검",
-    sub: "현재 어떤 채널을 갖고 계신가요?",
+    title: "마케팅 구조",
+    sub: "광고와 유입 의존도를 확인합니다.",
     icon: "02",
     questions: [
       {
-        id: "website",
-        label: "현재 고객이 확인할 수 있는 온라인 거점은?",
-        type: "single",
-        options: [
-          { label: "홈페이지 없음", value: "none" },
-          { label: "외부 플랫폼만 사용 (스마트스토어·네이버예약 등)", value: "platform" },
-          { label: "자사 사이트 있음 (기본 수준)", value: "basic" },
-          { label: "자사 사이트 있음 + 외부 플랫폼 사용", value: "site_platform" },
-          { label: "자사 사이트 + 블로그/콘텐츠 정기 발행", value: "active" }
-        ]
-      },
-      {
-        id: "channel",
-        label: "주된 매출 채널을 모두 선택해주세요",
-        sublabel: "벨녹 서비스 적합 여부를 판단하는 핵심 문항입니다",
-        type: "multi",
-        options: [
-          { label: "자사 웹사이트", value: "own" },
-          { label: "오프라인 직접 방문 / B2B 계약", value: "offline" },
-          { label: "마켓플레이스 (쿠팡·네이버쇼핑·11번가 등)", value: "marketplace" },
-          { label: "배달앱 (배달의민족·요기요 등)", value: "delivery" },
-          { label: "SNS DM 직접 주문 (인스타·카카오채널)", value: "sns_dm" }
-        ]
-      },
-      {
-        id: "sns",
-        label: "SNS 콘텐츠 운영 현황은?",
+        id: "ads",
+        label: "현재 유료 광고를 운영하고 있나요?",
         type: "single",
         options: [
           { label: "운영하지 않음", value: "none" },
-          { label: "간헐적 (월 1~2회 이하)", value: "occasional" },
-          { label: "정기적 (주 1회 이상)", value: "regular" }
+          { label: "직접 운영 중", value: "self" },
+          { label: "대행사를 통해 운영 중", value: "agency" }
+        ]
+      },
+      {
+        id: "ad_dependency",
+        label: "만약 지금 광고를 전부 끄면 어떻게 될 것 같나요?",
+        type: "single",
+        showIf: (answers) => answerString(answers, "ads") !== "none",
+        options: [
+          { label: "고객이 거의 끊길 것 같다", value: "critical" },
+          { label: "고객이 많이 줄겠지만 버틸 수는 있다", value: "drop" },
+          { label: "크게 달라지지 않을 것 같다", value: "stable" }
         ]
       }
     ]
   },
   {
     stepNum: 3,
-    title: "마케팅 · 검색 경험",
-    sub: "지금까지 어떤 방식으로 알려왔나요?",
+    title: "검색·AI 인식",
+    sub: "검색과 AI가 사업을 어떻게 읽는지 확인합니다.",
     icon: "03",
     questions: [
       {
-        id: "ads",
-        label: "광고 집행 경험은?",
+        id: "search_visibility",
+        label: "우리 업종·서비스 키워드로 검색하면 어떻게 나오나요?",
         type: "single",
         options: [
-          { label: "광고를 진행한 적 없음", value: "none" },
-          { label: "직접 진행 (메타·구글 셀프 광고)", value: "self" },
-          { label: "대행사를 통해 진행한 적 있음", value: "agency" }
+          { label: "검색해본 적 없거나 거의 안 나옴", value: "none" },
+          { label: "상호명으로는 나오지만 업종 키워드로는 잘 안 나옴", value: "brand" },
+          { label: "업종 키워드 검색에서도 노출됨", value: "keyword" }
         ]
       },
       {
-        id: "seo_practice",
-        label: "검색 노출 관련 작업 경험은?",
+        id: "ai_recognition",
+        label: "ChatGPT, Perplexity 같은 AI에서 우리 사업 정보를 검색해보셨나요?",
         type: "single",
         options: [
-          { label: "해본 적 없음 / 관심 없었음", value: "none" },
-          { label: "가끔 직접 검색해서 순위 확인", value: "check" },
-          { label: "정기적으로 SEO 작업·순위 관리 진행", value: "active" }
-        ]
-      },
-      {
-        id: "agency_sat",
-        label: "대행사 활용 결과 만족도는?",
-        sublabel: "대행사 이용 경험이 있는 경우에만 답해주세요",
-        type: "single",
-        optional: true,
-        showIf: (answers) => answerString(answers, "ads") === "agency",
-        options: [
-          { label: "만족스러운 결과를 얻었다", value: "satisfied" },
-          { label: "보통 / 애매했다", value: "neutral" },
-          { label: "불만족 — 돈만 쓰고 결과 없었다", value: "unsatisfied" }
+          { label: "찾아본 적 없거나 전혀 안 나옴", value: "none" },
+          { label: "이름은 나오지만 정보가 부족하거나 틀림", value: "partial" },
+          { label: "정확하고 충분한 정보가 나옴", value: "accurate" }
         ]
       }
     ]
   },
   {
     stepNum: 4,
-    title: "AI 검색 가시성",
-    sub: "AI 시대의 검색, 어디까지 알고 계신가요?",
+    title: "AI 추천·사업 규모",
+    sub: "AI 추천 여부와 실제 문의 규모를 확인합니다.",
     icon: "04",
     questions: [
       {
-        id: "seo_know",
-        label: "SEO(검색엔진 최적화)를 얼마나 알고 계신가요?",
+        id: "ai_citation",
+        label: "AI에게 \"우리 업종 추천해줘\"라고 물어보면 우리가 나오나요?",
         type: "single",
         options: [
-          { label: "처음 듣는다", value: "0" },
-          { label: "들어봤지만 잘 모른다", value: "1" },
-          { label: "알고 있고 직접 적용하고 있다", value: "2" }
+          { label: "물어본 적 없거나 나오지 않음", value: "none" },
+          { label: "가끔 언급됨", value: "occasional" },
+          { label: "자주 또는 가장 먼저 추천됨", value: "frequent" }
         ]
       },
       {
-        id: "aeo_geo",
-        label: "AEO(AI 답변 최적화) · GEO(AI 검색 최적화)를 들어보셨나요?",
+        id: "monthly_leads",
+        label: "월 신규 고객 또는 문의 건수가 어느 정도인가요?",
         type: "single",
         options: [
-          { label: "둘 다 처음 듣는다", value: "0" },
-          { label: "들어봤지만 잘 모른다", value: "1" },
-          { label: "알고 있고 우리 사업에 중요하다고 느낀다", value: "2" }
-        ]
-      },
-      {
-        id: "ai_search",
-        label: "ChatGPT · Perplexity 같은 AI 검색에서 본인 사업을 검색해보셨나요?",
-        type: "single",
-        options: [
-          { label: "AI 검색 자체를 써본 적 없다", value: "0" },
-          { label: "개인 용도로는 쓰지만 자사 검색은 안 했다", value: "1" },
-          { label: "검색해봤는데 우리 사업이 안 나왔다", value: "2" },
-          { label: "검색해봤고 일부 나왔다", value: "3" }
+          { label: "10건 미만", value: "low" },
+          { label: "10~50건", value: "mid" },
+          { label: "50건 이상", value: "high" }
         ]
       }
     ]
@@ -217,18 +236,6 @@ const GRADE_CONFIG: Record<
     showEmail: boolean;
   }
 > = {
-  A: {
-    stage: null,
-    badgeLabel: "ALTERNATIVE PATH",
-    typeName: "플랫폼 의존형",
-    name: "벨녹 영역 아님",
-    tag: "솔직한 안내",
-    headline: "지금은 플랫폼 내 경쟁이 더 우선인 단계입니다",
-    body: "모든 사업자가 지금 GEO/AEO를 최우선으로 해야 하는 것은 아닙니다. 매출의 대부분이 마켓플레이스·배달앱·SNS DM 같은 외부 플랫폼 내부 검색에서 발생한다면, 지금은 플랫폼 내 노출·전환 최적화가 더 우선입니다. SEO·AEO·GEO는 자사 채널과 장기 브랜드 자산을 만들 준비가 됐을 때 비로소 효과를 냅니다.",
-    cta: "맞는 전문가 유형 알아보기",
-    note: "선택하신 채널에 맞는 전문가 유형과 점검 항목을 안내해드립니다.",
-    showEmail: false
-  },
   B: {
     stage: "01",
     badgeLabel: "STAGE.01",
@@ -428,8 +435,6 @@ const DEFAULT_COMPETITORS = ["", ""];
 const DOMAIN_MIN_LENGTH = 4;
 const CUSTOMER_QUESTION_MIN_LENGTH = 8;
 const COMPARISON_TARGET_MIN_LENGTH = 2;
-const OWN_SITE_WEBSITE_VALUES = ["basic", "site_platform", "active"];
-const NO_SITE_WEBSITE_VALUES = ["none", "platform"];
 
 const INDUSTRY_OPTIONS: Array<Option & { value: IndustryKey }> = [
   { label: "소매 판매 (온·오프라인)", value: "retail" },
@@ -575,42 +580,6 @@ const INDUSTRY_EXAMPLES: Record<IndustryKey, IndustryExample[]> = {
   ]
 };
 
-const CHANNEL_GUIDANCE = {
-  marketplace: {
-    channelName: "마켓플레이스 (쿠팡·네이버쇼핑·11번가 등)",
-    expertType: "쇼핑몰 광고 대행사 / 마켓플레이스 운영 컨설턴트",
-    checklist: [
-      "광고 효율(ROAS)을 채널별로 분리해서 보여주는가",
-      "상품 상세페이지 최적화와 키워드 전략을 함께 다루는가",
-      "여러 마켓플레이스(쿠팡·네이버·11번가)를 통합 관리할 수 있는가",
-      "정산·매입 데이터를 광고 결과와 연결해 분석하는가"
-    ],
-    revisit: "자사 채널(홈페이지·자체 쇼핑몰)의 매출 비중이 30% 이상이 되면 다시 진단받으세요."
-  },
-  delivery: {
-    channelName: "배달앱 (배달의민족·요기요 등)",
-    expertType: "배달앱 광고 대행사 / F&B 마케팅 컨설턴트",
-    checklist: [
-      "배민·요기요·쿠팡이츠 광고 노출 데이터를 함께 분석하는가",
-      "메뉴 구성·가격 전략을 데이터 기반으로 제안하는가",
-      "리뷰 관리·답글 운영 노하우를 갖고 있는가",
-      "오프라인 매장 운영과 배달 운영의 균형을 이해하는가"
-    ],
-    revisit: "자사 예약·주문 채널을 구축하셨다면 다시 진단받으세요."
-  },
-  sns_dm: {
-    channelName: "SNS DM 직접 주문 (인스타·카카오채널)",
-    expertType: "SNS 콘텐츠 에이전시 / DM·메신저 CRM 전문가",
-    checklist: [
-      "콘텐츠 기획·제작·게시 전 과정을 다루는가",
-      "DM 응대를 자동화·표준화하는 시스템을 제안하는가",
-      "팔로워 단순 증가가 아니라 매출 전환까지 추적하는가",
-      "여러 채널(인스타·카카오채널) 동시 관리가 가능한가"
-    ],
-    revisit: "콘텐츠 운영이 안정되고 자사 사이트를 구축하시면 다시 진단받으세요."
-  }
-} as const;
-
 function answerString(answers: Answers, key: string) {
   const value = answers[key];
   return Array.isArray(value) ? "" : value || "";
@@ -667,15 +636,6 @@ function emailRequirementMessage(email: string) {
   return "";
 }
 
-function isNoSiteWebsiteAnswer(value: string) {
-  return NO_SITE_WEBSITE_VALUES.includes(value);
-}
-
-function getWebsiteOptions(question: Question, hasOwnSite: boolean) {
-  const allowedValues = hasOwnSite ? OWN_SITE_WEBSITE_VALUES : NO_SITE_WEBSITE_VALUES;
-  return question.options.filter((option) => allowedValues.includes(option.value));
-}
-
 function answerIndustry(answers: Answers): IndustryKey | null {
   const value = answerString(answers, "industry");
   return INDUSTRY_OPTIONS.some((option) => option.value === value) ? (value as IndustryKey) : null;
@@ -683,6 +643,57 @@ function answerIndustry(answers: Answers): IndustryKey | null {
 
 function getIndustryExamples(industry: IndustryKey | null) {
   return INDUSTRY_EXAMPLES[industry || "b2b"];
+}
+
+function getIndustryCluster(industry: IndustryKey | null): IndustryCluster | null {
+  if (industry === "professional" || industry === "education") return "professional_edu";
+  if (industry === "fnb" || industry === "retail") return "fnb_retail";
+  if (industry === "b2b" || industry === "industrial") return "b2b_industrial";
+  return null;
+}
+
+function getBranchContentQuestion(industry: IndustryKey | null): Question | null {
+  const cluster = getIndustryCluster(industry);
+
+  if (cluster === "professional_edu") {
+    return {
+      id: "branch_content",
+      label: "전문 지식·정보 콘텐츠(건강 정보, 교육 정보 등)를 직접 작성해 운영하고 있나요?",
+      type: "single",
+      options: [
+        { value: "no", label: "없음" },
+        { value: "occasional", label: "가끔 올리고 있음" },
+        { value: "regular", label: "정기적으로 운영 중" }
+      ]
+    };
+  }
+
+  if (cluster === "fnb_retail") {
+    return {
+      id: "branch_content",
+      label: "단골 고객과 직접 연락할 수 있는 채널이 있나요? (카카오 채널, 뉴스레터, 앱 등)",
+      type: "single",
+      options: [
+        { value: "no", label: "없음" },
+        { value: "passive", label: "있지만 거의 활용 안 함" },
+        { value: "active", label: "적극적으로 활용 중" }
+      ]
+    };
+  }
+
+  if (cluster === "b2b_industrial") {
+    return {
+      id: "branch_content",
+      label: "업계 관련 전문 콘텐츠(사례연구, 칼럼, 업계 정보)를 발행하고 있나요?",
+      type: "single",
+      options: [
+        { value: "no", label: "없음" },
+        { value: "yes", label: "있음" }
+      ]
+    };
+  }
+
+  return null;
 }
 
 function getOwnerTitle(industry: IndustryKey | null): string {
@@ -728,37 +739,217 @@ function useStreamingExample(examples: string[] | undefined) {
   return activeExample.slice(0, streamingLength);
 }
 
+function gradeFromTotal(T: number): GradeKey {
+  if (T <= 2) return "B";
+  if (T <= 5) return "C";
+  if (T <= 8) return "D";
+  if (T <= 11) return "E";
+  return "F";
+}
+
+function capGrade(current: GradeKey, max: GradeKey): GradeKey {
+  return STAGE_ORDER.indexOf(current) > STAGE_ORDER.indexOf(max) ? max : current;
+}
+
+function recalcGrade(r: ScoreResult): GradeKey {
+  const T = r.D + r.A + r.V + r.R + r.C + r.O + r.B;
+  let grade = gradeFromTotal(T);
+
+  if (r.D === 0) grade = capGrade(grade, "C");
+  if (r.A === 0) grade = capGrade(grade, "C");
+  if (r.R === 0) grade = capGrade(grade, "D");
+  if (r.C === 0) grade = capGrade(grade, "E");
+  return grade;
+}
+
 function calcScore(answers: Answers): ScoreResult {
-  const industrySpecial = ["professional", "b2b", "industrial"].includes(answerString(answers, "industry"));
-  const highRevenue = answerString(answers, "revenue") === "very_high";
-  const channels = Array.isArray(answers.channel) ? answers.channel : [];
-  const blockedChannels = channels.filter((channel) => ["marketplace", "delivery", "sns_dm"].includes(channel));
-  const channelBlock = blockedChannels.length >= 2;
-  const D = ({ none: 0, platform: 1, basic: 2, site_platform: 2, active: 3 } as Record<string, number>)[answerString(answers, "website")] ?? 0;
-  const snsM = ({ none: 0, occasional: 0, regular: 1 } as Record<string, number>)[answerString(answers, "sns")] ?? 0;
-  const adsM = ({ none: 0, self: 1, agency: 2 } as Record<string, number>)[answerString(answers, "ads")] ?? 0;
-  const M = Math.min(snsM + adsM, 3);
-  const sp = ({ none: 0, check: 1, active: 2 } as Record<string, number>)[answerString(answers, "seo_practice")] ?? 0;
-  const sk = ({ "0": 0, "1": 0, "2": 1 } as Record<string, number>)[answerString(answers, "seo_know")] ?? 0;
-  const ag = ({ "0": 0, "1": 0, "2": 1 } as Record<string, number>)[answerString(answers, "aeo_geo")] ?? 0;
-  const ai = ({ "0": 0, "1": 0, "2": 1, "3": 2 } as Record<string, number>)[answerString(answers, "ai_search")] ?? 0;
-  const S = Math.min(sp + sk + ag + ai, 3);
-  const dO = ({ u1: 0, "1_3": 1, "3_7": 1, o7: 2 } as Record<string, number>)[answerString(answers, "duration")] ?? 0;
-  const rO = ({ low: 0, mid: 0, high: 1, very_high: 1, skip: 0 } as Record<string, number>)[answerString(answers, "revenue")] ?? 0;
-  const O = Math.min(dO + rO, 2);
-  const T = D + M + S + O;
-  const sensitivity = answerString(answers, "agency_sat") === "unsatisfied";
+  const D = ({ none: 0, platform: 1, site: 2, content: 3 } as Record<string, number>)[answerString(answers, "digital_channel")] ?? 0;
 
-  let grade: GradeKey;
-  if (channelBlock) grade = "A";
-  else if (T >= 9 && (industrySpecial || highRevenue)) grade = "F";
-  else if (T <= 2) grade = "B";
-  else if (T <= 5) grade = "C";
-  else if (T <= 7) grade = "D";
-  else if (T <= 9) grade = "E";
-  else grade = "F";
+  let A: number;
+  if (answerString(answers, "ads") === "none") {
+    A = D >= 2 ? 2 : 1;
+  } else {
+    A = ({ critical: 0, drop: 1, stable: 2 } as Record<string, number>)[answerString(answers, "ad_dependency")] ?? 0;
+  }
 
-  return { grade, T, D, M, S, O, sensitivity, channelBlock, blockedChannels };
+  const V = ({ none: 0, brand: 1, keyword: 2 } as Record<string, number>)[answerString(answers, "search_visibility")] ?? 0;
+  const R = ({ none: 0, partial: 1, accurate: 2 } as Record<string, number>)[answerString(answers, "ai_recognition")] ?? 0;
+  const C = ({ none: 0, occasional: 1, frequent: 2 } as Record<string, number>)[answerString(answers, "ai_citation")] ?? 0;
+  const durationScore = ({ u1: 0, "1_3": 1, "3_5": 1, o5: 2 } as Record<string, number>)[answerString(answers, "duration")] ?? 0;
+  const leadsScore = ({ low: 0, mid: 1, high: 2 } as Record<string, number>)[answerString(answers, "monthly_leads")] ?? 0;
+  const O = Math.min(durationScore + leadsScore, 2);
+  const branchVal = answerString(answers, "branch_content");
+  const B = branchVal === "regular" || branchVal === "active" || branchVal === "yes" ? 1 : 0;
+  const T = D + A + V + R + C + O + B;
+  const sensitivity = answerString(answers, "ads") === "agency" && answerString(answers, "ad_dependency") === "critical";
+
+  let grade = gradeFromTotal(T);
+
+  if (D === 0)   grade = capGrade(grade, "C");
+  if (A === 0)   grade = capGrade(grade, "C");
+  if (R === 0)   grade = capGrade(grade, "D");
+  if (C === 0)   grade = capGrade(grade, "E");
+
+  let barrierReason: BarrierReason;
+  if (D === 0) barrierReason = "no_digital";
+  else if (A === 0) barrierReason = "ad_dependent";
+  else if (R === 0) barrierReason = "no_ai_recognition";
+  else if (C === 0) barrierReason = "no_ai_citation";
+  else barrierReason = "none";
+
+  return { grade, T, D, A, V, R, C, O, B, sensitivity, barrierReason };
+}
+
+const BARRIER_REASON_COPY: Record<BarrierReason, string | null> = {
+  no_digital:
+    "아직 직접 소유한 디지털 공간이 없습니다. AI와 검색이 사업 정보를 읽어낼 기반 자체가 없는 상태입니다.",
+  ad_dependent:
+    "지금 구조에서는 광고가 멈추는 순간 고객도 멈춥니다. 광고가 자산이 아니라 생명줄인 단계입니다.",
+  no_ai_recognition:
+    "AI가 아직 사업을 인식하지 못합니다. 검색 노출이 있더라도 AI가 모르면 추천 후보에 오르지 못합니다.",
+  no_ai_citation:
+    "AI는 사업을 알고 있지만, 먼저 꺼낼 만큼의 신뢰 신호가 아직 쌓이지 않은 상태입니다.",
+  none: null
+};
+
+function getSensitivityInsight(result: ScoreResult): SensitivityInsight | null {
+  const candidates: Array<{ dim: keyof ScoreResult; max: number; label: string; action: string }> = [
+    { dim: "R", max: 2, label: "AI 인식", action: "AI에서 정확한 정보가 나오도록 개선하면" },
+    { dim: "C", max: 2, label: "AI 인용", action: "AI가 업종 추천 시 사업을 언급하기 시작하면" },
+    { dim: "A", max: 2, label: "광고 자립도", action: "광고 없이도 고객이 유입되는 구조를 만들면" },
+    { dim: "D", max: 3, label: "디지털 자산", action: "웹사이트에 콘텐츠를 꾸준히 쌓기 시작하면" },
+    { dim: "V", max: 2, label: "검색 노출", action: "업종 키워드에서 검색 노출이 생기면" }
+  ];
+
+  for (const c of candidates) {
+    const current = result[c.dim] as number;
+    if (current < c.max) {
+      const simulatedResult = { ...result, [c.dim]: current + 1 };
+      const simGrade = recalcGrade(simulatedResult);
+      if (simGrade !== result.grade) {
+        return { dimension: c.label, action: c.action, newGrade: simGrade };
+      }
+    }
+  }
+
+  return null;
+}
+
+function getDiagnosisHistory(): DiagnosisHistory {
+  try {
+    const raw = localStorage.getItem("velnoc:diagnosisHistory");
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as DiagnosisHistory) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveDiagnosisHistory(result: ScoreResult, answers: Answers) {
+  try {
+    const record: DiagnosisRecord = {
+      date: new Date().toISOString().slice(0, 10),
+      grade: result.grade,
+      T: result.T,
+      D: result.D,
+      A: result.A,
+      V: result.V,
+      R: result.R,
+      C: result.C,
+      O: result.O,
+      B: result.B,
+      industry: answerIndustry(answers)
+    };
+    const raw = localStorage.getItem("velnoc:diagnosisHistory");
+    const history: DiagnosisHistory = raw ? JSON.parse(raw) : [];
+    const last = history.at(-1);
+    if (
+      last &&
+      last.date === record.date &&
+      last.grade === record.grade &&
+      last.T === record.T &&
+      last.D === record.D &&
+      last.A === record.A &&
+      last.V === record.V &&
+      last.R === record.R &&
+      last.C === record.C &&
+      last.O === record.O &&
+      last.B === record.B &&
+      last.industry === record.industry
+    ) {
+      return;
+    }
+    const updated = [...history, record].slice(-5);
+    localStorage.setItem("velnoc:diagnosisHistory", JSON.stringify(updated));
+  } catch {
+    // localStorage can be unavailable in private contexts. Diagnosis should still work.
+  }
+}
+
+function getDaysSinceLastDiagnosis(): number | null {
+  try {
+    const raw = localStorage.getItem("velnoc:diagnosisHistory");
+    if (!raw) return null;
+    const history: DiagnosisHistory = JSON.parse(raw);
+    if (history.length === 0) return null;
+    const last = history.at(-1);
+    if (!last) return null;
+    const diff = Date.now() - new Date(last.date).getTime();
+    return Math.floor(diff / (1000 * 60 * 60 * 24));
+  } catch {
+    return null;
+  }
+}
+
+function normalizeIndustryKey(value: string): IndustryKey | null {
+  return INDUSTRY_OPTIONS.some((option) => option.value === value) ? (value as IndustryKey) : null;
+}
+
+function encodeResult(result: ScoreResult, industry: IndustryKey | null): string {
+  const data: ShareableResult = {
+    g: result.grade,
+    t: result.T,
+    d: result.D,
+    a: result.A,
+    v: result.V,
+    r: result.R,
+    c: result.C,
+    o: result.O,
+    b: result.B,
+    i: industry ?? ""
+  };
+  return btoa(JSON.stringify(data));
+}
+
+function decodeResult(encoded: string): { result: Partial<ScoreResult>; industry: string } | null {
+  try {
+    const data: ShareableResult = JSON.parse(atob(encoded));
+    if (!STAGE_ORDER.includes(data.g)) return null;
+    return {
+      result: {
+        grade: data.g,
+        T: Number(data.t) || 0,
+        D: Number(data.d) || 0,
+        A: Number(data.a) || 0,
+        V: Number(data.v) || 0,
+        R: Number(data.r) || 0,
+        C: Number(data.c) || 0,
+        O: Number(data.o) || 0,
+        B: Number(data.b) || 0,
+        sensitivity: false,
+        barrierReason: "none"
+      },
+      industry: data.i
+    };
+  } catch {
+    return null;
+  }
+}
+
+function buildShareUrl(result: ScoreResult, industry: IndustryKey | null): string {
+  const encoded = encodeResult(result, industry);
+  return `${window.location.origin}/tools/diagnosis?result=${encoded}`;
 }
 
 
@@ -873,7 +1064,7 @@ function ScoreBar({ label, val, max }: { label: string; val: number; max: number
     <div className="vn-score-row">
       <div className="vn-score-row-head">
         <span className="vn-micro vn-text-tertiary">{label}</span>
-        <span className="vn-tabular vn-small">
+        <span className="vn-tabular vn-small vn-text-primary">
           {val} <span className="vn-text-tertiary">/ {max}</span>
         </span>
       </div>
@@ -883,9 +1074,17 @@ function ScoreBar({ label, val, max }: { label: string; val: number; max: number
 }
 
 function IntroScreen({ onSelect }: { onSelect: (hasOwnSite: boolean) => void }) {
+  const days = getDaysSinceLastDiagnosis();
+
   return (
     <div className="vn-tool-screen vn-tool-screen-center">
       <div className="vn-tool-container vn-fade-in">
+        {days !== null && days >= 90 && (
+          <div className="vn-callout vn-callout-oak">
+            <p className="vn-micro vn-text-oak">재진단 권장</p>
+            <p className="vn-small">마지막 진단에서 {days}일이 지났습니다. 변화된 상황을 다시 진단해보세요.</p>
+          </div>
+        )}
         <p className="vn-micro vn-text-tertiary vn-center">VELNOC · 자가 진단</p>
         <h1 className="vn-head vn-hero-title vn-center">
           AI가 당신의 비즈니스를
@@ -1170,7 +1369,7 @@ function DomainInputScreen({
           <div className="vn-callout vn-callout-oak">
             <p className="vn-micro vn-text-oak">DIAGNOSIS COVERAGE</p>
             <p className="vn-small">
-              <strong>즉시 확인</strong>: A~F 단계 분류 + 추천 다음 행동
+              <strong>즉시 확인</strong>: 1~5단계 판정 + 추천 다음 행동
               <br />
               <strong>후속 회신</strong>: 도메인·비교 브랜드·AI 검색 가시성 검토 + 상담 제안
             </p>
@@ -1211,8 +1410,7 @@ function SurveyScreen({
   setAnswers,
   onBack,
   onNext,
-  onFinish,
-  hasOwnSite
+  onFinish
 }: {
   step: number;
   answers: Answers;
@@ -1220,17 +1418,10 @@ function SurveyScreen({
   onBack: () => void;
   onNext: () => void;
   onFinish: () => void;
-  hasOwnSite: boolean;
 }) {
   const stepData = STEP_DATA[step];
-  const questions = stepData.questions
-    .map((question) => {
-      if (question.id === "website") {
-        return { ...question, options: getWebsiteOptions(question, hasOwnSite) };
-      }
-      return question;
-    })
-    .filter((question) => !question.showIf || question.showIf(answers));
+  const branchQuestion = stepData.stepNum === 3 ? getBranchContentQuestion(answerIndustry(answers)) : null;
+  const questions = [...stepData.questions, ...(branchQuestion ? [branchQuestion] : [])].filter((question) => !question.showIf || question.showIf(answers));
   const isComplete = questions.every((question) => {
     if (question.optional) return true;
     const value = answers[question.id];
@@ -1322,96 +1513,6 @@ function SurveyScreen({
           </button>
         </div>
         <p className="vn-micro vn-text-tertiary vn-center vn-muted">약 5분 소요 · 개인정보 별도 수집 없음</p>
-      </div>
-    </div>
-  );
-}
-
-function ChannelGuidanceCard({ channel }: { channel: string }) {
-  const guidance = CHANNEL_GUIDANCE[channel as keyof typeof CHANNEL_GUIDANCE];
-  if (!guidance) return null;
-
-  return (
-    <div className="vn-card vn-fade-in">
-      <p className="vn-micro vn-text-tertiary">CHANNEL</p>
-      <h3 className="vn-click-card-title">{guidance.channelName}</h3>
-      <p className="vn-micro vn-text-tertiary">RECOMMENDED EXPERT</p>
-      <p className="vn-body">
-        <strong>{guidance.expertType}</strong>
-      </p>
-      <div className="vn-checklist">
-        <p className="vn-micro vn-text-tertiary">전문가 점검 체크리스트</p>
-        {guidance.checklist.map((item, index) => (
-          <div key={item} className="vn-checklist-row">
-            <span className="vn-micro vn-tabular vn-text-tertiary">{String(index + 1).padStart(2, "0")}</span>
-            <p className="vn-small vn-text-secondary">{item}</p>
-          </div>
-        ))}
-      </div>
-      <div className="vn-callout vn-callout-oak">
-        <p className="vn-micro vn-text-oak">REVISIT</p>
-        <p className="vn-small">{guidance.revisit}</p>
-      </div>
-    </div>
-  );
-}
-
-function ResultScreenTypeA({ result, onReset }: { result: ScoreResult; onReset: () => void }) {
-  const [showGuidance, setShowGuidance] = useState(false);
-  const cfg = GRADE_CONFIG.A;
-  const channelNames = result.blockedChannels
-    .map((channel) => ({ marketplace: "마켓플레이스", delivery: "배달앱", sns_dm: "SNS DM" })[channel])
-    .filter(Boolean)
-    .join(" · ");
-
-  return (
-    <div className="vn-tool-screen">
-      <div className="vn-tool-container vn-fade-in">
-        <p className="vn-micro vn-text-tertiary vn-center">VELNOC · 자가 진단 결과</p>
-        <div className="vn-center">
-          <div className="vn-result-badge-danger">
-            <span className="vn-micro vn-text-danger">{cfg.badgeLabel}</span>
-            <span className="vn-head vn-section-title">{cfg.typeName}</span>
-          </div>
-          <h1 className="vn-head vn-click-card-title">{cfg.headline}</h1>
-        </div>
-
-        <div className="vn-panel-stack">
-          {result.blockedChannels.length > 0 && (
-            <div className="vn-card vn-card-tight">
-              <p className="vn-micro vn-text-tertiary">왜 이 분류인가요?</p>
-              <p className="vn-small">
-                선택하신 매출 채널이 <strong>{channelNames}</strong> 중심이라, AI 검색 최적화(SEO·AEO·GEO)보다 각 채널 내 최적화 전략이 훨씬 효과적입니다.
-              </p>
-            </div>
-          )}
-          <div className="vn-card">
-            <p className="vn-body">{cfg.body}</p>
-          </div>
-
-          {!showGuidance ? (
-            <>
-              <button type="button" onClick={() => setShowGuidance(true)} className="vn-btn-secondary">{cfg.cta} ↓</button>
-              <p className="vn-small vn-text-tertiary vn-center">{cfg.note}</p>
-            </>
-          ) : (
-            <div className="vn-panel-stack vn-fade-in">
-              <div className="vn-row-between">
-                <span className="vn-micro vn-text-tertiary">EXPERT GUIDANCE</span>
-                <span className="vn-divider" />
-                <span className="vn-micro vn-tabular vn-text-tertiary">{result.blockedChannels.length}개 채널</span>
-              </div>
-              {result.blockedChannels.map((channel) => <ChannelGuidanceCard key={channel} channel={channel} />)}
-              <div className="vn-callout vn-callout-oak">
-                <p className="vn-small">벨녹은 특정 대행사를 추천하지 않습니다. <strong>전문가를 고를 때 위의 점검 항목을 활용하세요.</strong> 그 후 자사 채널이 성장하면 벨녹 진단을 다시 받아보세요.</p>
-              </div>
-            </div>
-          )}
-
-          <div className="vn-center">
-            <button type="button" onClick={onReset} className="vn-reset-button">처음부터 다시 진단하기</button>
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -1558,17 +1659,37 @@ function StageTimelineCard({
   );
 }
 
+function ShareButton({ result, industry }: { result: ScoreResult; industry: IndustryKey | null }) {
+  const [copied, setCopied] = useState(false);
+
+  function handleCopy() {
+    const url = buildShareUrl(result, industry);
+    void navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  return (
+    <button type="button" onClick={handleCopy} className="vn-reset-button">
+      {copied ? "링크 복사됨 ✓" : "결과 링크 공유하기"}
+    </button>
+  );
+}
+
 function ResultScreenStage({
   result,
   siteInputs,
   answers,
   hasOwnSite,
+  domainCheck,
   onConsult
 }: {
   result: ScoreResult;
   siteInputs: SiteInputs;
   answers: Answers;
   hasOwnSite: boolean;
+  domainCheck: DomainCheckResult | null;
   onConsult: () => void;
 }) {
   const cfg = GRADE_CONFIG[result.grade];
@@ -1593,18 +1714,52 @@ function ResultScreenStage({
     competitors: normalizeComparisonTargets(siteInputs.competitors)
   };
   const target = siteMeta.domain || siteMeta.competitors[0] || "도메인 미입력";
-  const summary = `${cfg.name} / ${cfg.typeName} / 총점 ${result.T}/11 / ${target}`;
+  const summary = `${cfg.name} / ${cfg.typeName} / 총점 ${result.T}/14 / ${target}`;
   const dims = [
-    { label: "DIGITAL ASSET", val: result.D, max: 3 },
-    { label: "MARKETING EXP", val: result.M, max: 3 },
-    { label: "AI VISIBILITY", val: result.S, max: 3 },
-    { label: "OPERATION SCALE", val: result.O, max: 2 }
+    { label: "디지털 자산", val: result.D, max: 3 },
+    { label: "광고 자립도", val: result.A, max: 2 },
+    { label: "검색 노출", val: result.V, max: 2 },
+    { label: "AI 인식", val: result.R, max: 2 },
+    { label: "AI 인용", val: result.C, max: 2 },
+    { label: "사업 기반", val: result.O, max: 2 },
+    ...(result.B > 0 ? [{ label: "업종 강점", val: result.B, max: 1 }] : [])
   ];
   const leadEmailError = emailRequirementMessage(form.email);
   const canSubmit = !leadEmailError;
   const consultationType = "무료 상세 진단";
-  const ownerTitle = getOwnerTitle(answerIndustry(answers));
+  const industry = answerIndustry(answers);
+  const ownerTitle = getOwnerTitle(industry);
   const resultHelper = stageResultHelper(stageGrade);
+  const barrierCopy = BARRIER_REASON_COPY[result.barrierReason];
+  const sensitivityInsight = getSensitivityInsight(result);
+  const [benchmark, setBenchmark] = useState<DiagnosisBenchmark | null>(null);
+  const prevRecord = useMemo<DiagnosisRecord | null>(() => {
+    const history = getDiagnosisHistory();
+    if (history.length === 0) return null;
+    const today = new Date().toISOString().slice(0, 10);
+    const prev = history.filter((r) => r.date !== today).at(-1);
+    return prev ?? null;
+  }, []);
+  const gradeDelta = prevRecord
+    ? STAGE_ORDER.indexOf(result.grade as StageGrade) - STAGE_ORDER.indexOf(prevRecord.grade as StageGrade)
+    : null;
+
+  useEffect(() => {
+    if (!industry) return;
+    let cancelled = false;
+
+    fetch(`/api/diagnosis-stats?industry=${industry}`)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data: DiagnosisBenchmark | null) => {
+        if (!cancelled && data) setBenchmark(data);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [industry]);
+
   const updateForm = (key: keyof LeadForm, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
 
   async function submitLead(event: FormEvent<HTMLFormElement>) {
@@ -1630,12 +1785,14 @@ function ResultScreenStage({
               grade: result.grade,
               T: result.T,
               D: result.D,
-              M: result.M,
-              S: result.S,
+              A: result.A,
+              V: result.V,
+              R: result.R,
+              C: result.C,
               O: result.O,
+              B: result.B,
               sensitivity: result.sensitivity,
-              channelBlock: result.channelBlock,
-              blockedChannels: result.blockedChannels
+              barrierReason: result.barrierReason
             },
             result: {
               grade: result.grade,
@@ -1666,6 +1823,32 @@ function ResultScreenStage({
           <h1 className="vn-head vn-section-title">
             {ownerTitle} 사업은 지금 <strong className="vn-text-oak">{currentStageLabel}</strong> 단계입니다.
           </h1>
+          {barrierCopy && (
+            <div className="vn-callout">
+              <p className="vn-micro vn-text-oak">이 단계인 이유</p>
+              <p className="vn-small vn-text-secondary">{barrierCopy}</p>
+            </div>
+          )}
+          {prevRecord && gradeDelta !== null && (
+            <div className="vn-callout">
+              <p className="vn-micro vn-text-tertiary">지난 진단 ({prevRecord.date}) 대비</p>
+              {gradeDelta > 0 && (
+                <p className="vn-small vn-text-oak">
+                  ↑ {gradeDelta}단계 상승 · 총점 {result.T}점 (이전 {prevRecord.T}점)
+                </p>
+              )}
+              {gradeDelta < 0 && (
+                <p className="vn-small vn-text-danger">
+                  ↓ {Math.abs(gradeDelta)}단계 하락 · 총점 {result.T}점 (이전 {prevRecord.T}점)
+                </p>
+              )}
+              {gradeDelta === 0 && (
+                <p className="vn-small vn-text-secondary">
+                  단계 유지 · 총점 {result.T}점 (이전 {prevRecord.T}점)
+                </p>
+              )}
+            </div>
+          )}
           <p className="vn-body vn-text-secondary">{resultHelper}</p>
         </div>
 
@@ -1711,8 +1894,35 @@ function ResultScreenStage({
             {dims.map((dim) => <ScoreBar key={dim.label} {...dim} />)}
             <div className="vn-row-between">
               <span className="vn-micro vn-text-tertiary">TOTAL SCORE</span>
-              <span className="vn-tabular vn-text-oak">{result.T} <span className="vn-text-tertiary">/ 11</span></span>
+              <span className="vn-tabular vn-text-oak">{result.T} <span className="vn-text-tertiary">/ 14</span></span>
             </div>
+            {sensitivityInsight && (
+              <div className="vn-callout vn-callout-oak">
+                <p className="vn-micro vn-text-oak">단계 상승 포인트</p>
+                <p className="vn-small">
+                  <strong>{sensitivityInsight.dimension}</strong>을 개선하면 {DIAGNOSIS_STAGE_DETAILS[sensitivityInsight.newGrade].label}로 올라갑니다.
+                </p>
+                <p className="vn-micro vn-text-tertiary">{sensitivityInsight.action}</p>
+              </div>
+            )}
+            {domainCheck && (
+              <div className="vn-callout">
+                <p className="vn-micro vn-text-tertiary">도메인 직접 확인 결과</p>
+                <ul className="vn-list-plain vn-small vn-text-secondary">
+                  <li>{domainCheck.alive ? "✓ 사이트 정상 응답" : "✗ 사이트 응답 없음"}</li>
+                  <li>{domainCheck.title ? `✓ 타이틀: ${domainCheck.title.slice(0, 40)}` : "✗ 타이틀 없음"}</li>
+                  <li>{domainCheck.description ? "✓ 메타 디스크립션 있음" : "✗ 메타 디스크립션 없음"}</li>
+                  {domainCheck.robotsBlocked && <li>⚠ robots.txt가 검색 엔진을 차단하고 있음</li>}
+                  <li>{domainCheck.hasMobileViewport ? "✓ 모바일 대응됨" : "✗ 모바일 viewport 없음"}</li>
+                </ul>
+              </div>
+            )}
+            {benchmark?.hasEnoughData && (
+              <p className="vn-micro vn-text-tertiary vn-center">
+                같은 업종 {benchmark.total}건 진단 기준 · 가장 많은 단계:{" "}
+                <strong>{DIAGNOSIS_STAGE_DETAILS[benchmark.mostCommon]?.label ?? benchmark.mostCommon}</strong>
+              </p>
+            )}
           </div>
 
           {cfg.showEmail && (
@@ -1768,6 +1978,7 @@ function ResultScreenStage({
           <button type="button" onClick={onConsult} className="vn-note-action">상담 시작</button>
           <p className="vn-small vn-text-tertiary vn-center">무료 · 5분 소요 · 연락처 없이 기본 결과 확인</p>
           <div className="vn-center">
+            <ShareButton result={result} industry={industry} />
             <Link href="/tools/diagnosis" className="vn-reset-button">다시 진단하기</Link>
           </div>
         </div>
@@ -1778,8 +1989,19 @@ function ResultScreenStage({
 
 export function DiagnosisTool() {
   const router = useRouter();
-  const [phase, setPhase] = useState<"intro" | "industry" | "domain" | "survey" | "result">("intro");
-  const [hasOwnSite, setHasOwnSite] = useState<boolean | null>(null);
+  const searchParams = useSearchParams();
+  const sharedPayload = useMemo(() => {
+    const encoded = searchParams.get("result");
+    if (!encoded) return null;
+    const decoded = decodeResult(encoded);
+    if (!decoded) return null;
+    return {
+      result: decoded.result as ScoreResult,
+      industry: normalizeIndustryKey(decoded.industry)
+    };
+  }, [searchParams]);
+  const [phase, setPhase] = useState<"intro" | "industry" | "domain" | "survey" | "result">(() => (sharedPayload ? "result" : "intro"));
+  const [hasOwnSite, setHasOwnSite] = useState<boolean | null>(() => (sharedPayload ? true : null));
   const [siteInputs, setSiteInputs] = useState<SiteInputs>({
     domain: "",
     brand: "",
@@ -1788,19 +2010,75 @@ export function DiagnosisTool() {
     desiredMention: "",
     competitors: [...DEFAULT_COMPETITORS]
   });
+  const [domainCheck, setDomainCheck] = useState<DomainCheckResult | null>(null);
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<Answers>({});
+  const [answers, setAnswers] = useState<Answers>(() => (sharedPayload?.industry ? { industry: sharedPayload.industry } : {}));
+  const [sharedResult, setSharedResult] = useState<ScoreResult | null>(() => sharedPayload?.result ?? null);
+  const savedResultSignatureRef = useRef<string | null>(null);
   const selectedIndustry = answerIndustry(answers);
-  const result = useMemo(() => calcScore(answers), [answers]);
+  const calculatedResult = useMemo(() => calcScore(answers), [answers]);
+  const result = sharedResult ?? calculatedResult;
 
   useEffect(() => {
-    if (phase !== "result" || result.grade === "A") return;
+    if (phase !== "result") return;
     const stageIndex = STAGE_ORDER.indexOf(result.grade as StageGrade);
-    if (stageIndex < 0) return;
-    localStorage.setItem("velnoc:userStage", String(stageIndex + 1));
-  }, [phase, result.grade]);
+    if (stageIndex >= 0) localStorage.setItem("velnoc:userStage", String(stageIndex + 1));
+    const industry = answerIndustry(answers);
+    const signature = JSON.stringify({
+      grade: result.grade,
+      T: result.T,
+      D: result.D,
+      A: result.A,
+      V: result.V,
+      R: result.R,
+      C: result.C,
+      O: result.O,
+      B: result.B,
+      industry
+    });
+    if (savedResultSignatureRef.current === signature) return;
+    savedResultSignatureRef.current = signature;
+    saveDiagnosisHistory(result, answers);
+  }, [answers, phase, result]);
+
+  useEffect(() => {
+    const domain = siteInputs.domain.trim();
+    if (domain.length < DOMAIN_MIN_LENGTH) {
+      const timer = window.setTimeout(() => setDomainCheck(null), 0);
+      return () => window.clearTimeout(timer);
+    }
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/domain-check?domain=${encodeURIComponent(domain)}`, {
+          signal: controller.signal
+        });
+        if (response.ok) {
+          setDomainCheck((await response.json()) as DomainCheckResult);
+        }
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setDomainCheck({
+            alive: false,
+            title: null,
+            description: null,
+            robotsBlocked: false,
+            hasMobileViewport: false,
+            error: error instanceof Error ? error.message : "fetch failed"
+          });
+        }
+      }
+    }, 800);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [siteInputs.domain]);
 
   function handleIntroSelect(ownSite: boolean) {
+    setSharedResult(null);
     setHasOwnSite(ownSite);
     setPhase("industry");
     track("diagnosis_start", { has_site: ownSite });
@@ -1812,19 +2090,6 @@ export function DiagnosisTool() {
   }
 
   function handleDomainSubmit() {
-    setAnswers((prev) => {
-      if (hasOwnSite === false) {
-        const currentWebsite = answerString(prev, "website");
-        return { ...prev, website: isNoSiteWebsiteAnswer(currentWebsite) ? currentWebsite : "none" };
-      }
-
-      if (hasOwnSite === true && !OWN_SITE_WEBSITE_VALUES.includes(answerString(prev, "website"))) {
-        const { website, ...rest } = prev;
-        return rest;
-      }
-
-      return prev;
-    });
     setPhase("survey");
   }
 
@@ -1849,6 +2114,8 @@ export function DiagnosisTool() {
   }
 
   function reset() {
+    setSharedResult(null);
+    savedResultSignatureRef.current = null;
     setPhase("intro");
     setHasOwnSite(null);
     setSiteInputs({
@@ -1859,6 +2126,7 @@ export function DiagnosisTool() {
       desiredMention: "",
       competitors: [...DEFAULT_COMPETITORS]
     });
+    setDomainCheck(null);
     setStep(0);
     setAnswers({});
   }
@@ -1897,19 +2165,18 @@ export function DiagnosisTool() {
         onBack={goBack}
         onNext={goNext}
         onFinish={goFinish}
-        hasOwnSite={hasOwnSite}
       />
     );
   }
 
   if (phase === "result" && hasOwnSite !== null) {
-    if (result.grade === "A") return <ResultScreenTypeA result={result} onReset={reset} />;
     return (
       <ResultScreenStage
         result={result}
         siteInputs={siteInputs}
         answers={answers}
         hasOwnSite={hasOwnSite}
+        domainCheck={domainCheck}
         onConsult={() => router.push(result.grade === "F" ? "/contact?type=os" : "/contact")}
       />
     );

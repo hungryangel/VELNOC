@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
-import { autoReplySubject, autoReplyText, leadSchema, normalizeLead, operatorText } from "@/lib/lead";
+import { autoReplySubject, autoReplyText, leadSchema, normalizeLead, operatorText, type LeadPayload } from "@/lib/lead";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +46,25 @@ async function sendEmail(to: string, subject: string, text: string) {
   const resend = new Resend(apiKey);
   const result = await resend.emails.send({ from, to, subject, text });
   return !result.error;
+}
+
+function recordValue(value: unknown): Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+async function recordDiagnosisStats(request: NextRequest, body: LeadPayload) {
+  if (!body.grade || !body.metadata?.site) return;
+  const answers = recordValue(body.metadata?.answers);
+  const score = recordValue(body.metadata?.score);
+  await fetch(`${request.nextUrl.origin}/api/diagnosis-stats`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      industry: typeof answers.industry === "string" ? answers.industry : "unknown",
+      grade: body.grade,
+      T: typeof score.T === "number" ? score.T : 0
+    })
+  }).catch(() => {});
 }
 
 export async function POST(request: NextRequest) {
@@ -96,6 +115,8 @@ export async function POST(request: NextRequest) {
   if (!userMail && !operatorMail && !slack) {
     console.warn("Lead accepted without delivery providers configured", operatorBody);
   }
+
+  await recordDiagnosisStats(request, lead).catch(() => {});
 
   return NextResponse.json({
     ok: true,
