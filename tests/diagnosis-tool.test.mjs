@@ -82,6 +82,41 @@ test("diagnosis v2 uses barrier scoring with branched survey questions", () => {
   assert.doesNotMatch(source, /blockedChannels/);
 });
 
+test("diagnosis result summarizes scores with a six-axis wheel before long details", () => {
+  const source = diagnosisSource();
+  const styles = globalStyles();
+
+  assert.match(source, /type ScoreDimension = \{/);
+  assert.match(source, /function getCoreScoreDimensions\(result: ScoreResult\): ScoreDimension\[\]/);
+  assert.match(source, /function DiagnosisScoreWheel\(\{ dimensions, total, max \}/);
+  assert.match(source, /className="vn-score-wheel"/);
+  assert.match(source, /role="img"/);
+  assert.match(source, /aria-label=\{`진단 점수 총 \$\{total\}점, 6개 핵심 신호 분포`\}/);
+  assert.match(source, /가장 약한 신호/);
+  assert.match(source, /추천 시작점/);
+  assert.match(source, /className="vn-card vn-result-context-details"/);
+  assert.match(source, /<summary>이전·다음 단계 맥락 보기<\/summary>/);
+  assert.match(source, /className="vn-card vn-score-breakdown"/);
+  assert.match(source, /<details className="vn-card vn-score-breakdown" open>/);
+  assert.match(source, /<summary>점수 세부 보기<\/summary>/);
+  assert.match(source, /function scoreLevelCopy\(val: number, max: number\)/);
+  assert.match(source, /className="vn-score-row-hint"/);
+  assert.match(source, /tabIndex=\{0\}/);
+  assert.match(source, /aria-label=\{`\$\{label\} \$\{val\}\/\$\{max\}\. \$\{levelCopy\}`\}/);
+  assert.doesNotMatch(source, /detail\.gauge/);
+
+  assert.match(styles, /\.vn-result-overview/);
+  assert.match(styles, /\.vn-score-wheel/);
+  assert.match(styles, /\.vn-score-wheel-svg/);
+  assert.match(styles, /\.vn-result-summary-grid/);
+  assert.match(styles, /\.vn-result-context-details/);
+  assert.match(styles, /\.vn-score-breakdown/);
+  assert.match(styles, /\.vn-score-breakdown:not\(\[open\]\)/);
+  assert.match(styles, /\.vn-score-row-hint/);
+  assert.match(styles, /\.vn-score-row:hover \.vn-score-row-hint/);
+  assert.match(styles, /\.vn-score-row:focus-visible \.vn-score-row-hint/);
+});
+
 test("domain intake asks for AI customer questions needed for consulting", () => {
   const source = diagnosisSource();
 
@@ -221,8 +256,15 @@ test("survey and lead forms identify the missing required answer", () => {
   assert.match(source, /function emailRequirementMessage/);
   assert.match(source, /상세 진단 결과를 받을 이메일을 입력해주세요\./);
   assert.match(source, /올바른 이메일 주소를 입력해주세요\./);
+  assert.match(source, /const \[leadEmailTouched, setLeadEmailTouched\] = useState\(false\)/);
+  assert.match(source, /const \[leadSubmitAttempted, setLeadSubmitAttempted\] = useState\(false\)/);
+  assert.match(source, /const showLeadEmailError = Boolean\(leadEmailError && \(leadEmailTouched \|\| leadSubmitAttempted\)\)/);
   assert.match(source, /id="lead-required-errors"/);
-  assert.match(source, /aria-describedby=\{leadEmailError \? "lead-email-error" : undefined\}/);
+  assert.match(source, /onBlur=\{\(\) => setLeadEmailTouched\(true\)\}/);
+  assert.match(source, /aria-invalid=\{showLeadEmailError\}/);
+  assert.match(source, /aria-describedby=\{showLeadEmailError \? "lead-email-error" : undefined\}/);
+  assert.match(source, /이메일 확인/);
+  assert.match(source, /disabled=\{submitting\}/);
   assert.match(styles, /\.vn-fieldset\.has-error/);
   assert.match(styles, /\.vn-fieldset-error/);
 });

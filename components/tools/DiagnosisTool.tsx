@@ -59,6 +59,14 @@ type SensitivityInsight = {
   newGrade: GradeKey;
 };
 
+type ScoreDimension = {
+  key: "D" | "A" | "V" | "R" | "C" | "O";
+  label: string;
+  val: number;
+  max: number;
+  action: string;
+};
+
 type DiagnosisRecord = {
   date: string;
   grade: GradeKey;
@@ -343,7 +351,7 @@ const DIAGNOSIS_STAGE_DETAILS: Record<StageGrade, DiagnosisStageDetail> = {
     gauge: "광고 의존도 — 80% / 20%",
     details: `지금 이 단계에서 일어나는 일
 
-사이트 정보가 검색엔진에 인식되면서, 우리 가게 이름이나
+사이트 정보가 검색엔진에 인식되면서, 우리 브랜드·기관명이나
 업종 키워드로 들어오는 유입이 한두 명씩 나타납니다.
 아직 우연에 가까운 노출이라 매출에 미치는 영향은 작지만,
 광고가 만들지 않은 첫 손님이 생겼다는 것이 이 단계의 본질입니다.
@@ -835,6 +843,21 @@ function getSensitivityInsight(result: ScoreResult): SensitivityInsight | null {
   return null;
 }
 
+function getCoreScoreDimensions(result: ScoreResult): ScoreDimension[] {
+  return [
+    { key: "D", label: "디지털 자산", val: result.D, max: 3, action: "웹사이트와 콘텐츠 기반을 정리하면" },
+    { key: "A", label: "광고 자립도", val: result.A, max: 2, action: "광고 밖의 유입 구조를 만들면" },
+    { key: "V", label: "검색 노출", val: result.V, max: 2, action: "업종 키워드에서 공식 정보가 보이게 하면" },
+    { key: "R", label: "AI 인식", val: result.R, max: 2, action: "AI가 정확한 사업 정보를 읽게 하면" },
+    { key: "C", label: "AI 인용", val: result.C, max: 2, action: "AI가 추천 답변에서 꺼낼 신뢰 출처를 만들면" },
+    { key: "O", label: "사업 기반", val: result.O, max: 2, action: "운영 기간과 문의 흐름을 자산으로 연결하면" }
+  ];
+}
+
+function getWeakestDimension(dimensions: ScoreDimension[]) {
+  return [...dimensions].sort((a, b) => (a.val / a.max) - (b.val / b.max))[0];
+}
+
 function getDiagnosisHistory(): DiagnosisHistory {
   try {
     const raw = localStorage.getItem("velnoc:diagnosisHistory");
@@ -1059,9 +1082,19 @@ function OptionButton({
   );
 }
 
+function scoreLevelCopy(val: number, max: number) {
+  const ratio = max > 0 ? val / max : 0;
+  if (val === 0) return "낮은 수준 — 아직 신호가 거의 없습니다.";
+  if (ratio < 0.5) return "기초 수준 — 신호는 있지만 보강이 필요합니다.";
+  if (ratio < 0.85) return "안정 수준 — 기반은 잡혔고 누적이 필요합니다.";
+  return "강한 수준 — 현재 강점으로 활용할 수 있습니다.";
+}
+
 function ScoreBar({ label, val, max }: { label: string; val: number; max: number }) {
+  const levelCopy = scoreLevelCopy(val, max);
+
   return (
-    <div className="vn-score-row">
+    <div className="vn-score-row" tabIndex={0} aria-label={`${label} ${val}/${max}. ${levelCopy}`}>
       <div className="vn-score-row-head">
         <span className="vn-micro vn-text-tertiary">{label}</span>
         <span className="vn-tabular vn-small vn-text-primary">
@@ -1069,6 +1102,83 @@ function ScoreBar({ label, val, max }: { label: string; val: number; max: number
         </span>
       </div>
       <progress className="vn-score-meter" value={val} max={max} />
+      <p className="vn-score-row-hint">{levelCopy}</p>
+    </div>
+  );
+}
+
+function wheelPoint(index: number, count: number, radius: number) {
+  const angle = -Math.PI / 2 + (Math.PI * 2 * index) / count;
+  return {
+    x: 110 + Math.cos(angle) * radius,
+    y: 110 + Math.sin(angle) * radius
+  };
+}
+
+function DiagnosisScoreWheel({ dimensions, total, max }: { dimensions: ScoreDimension[]; total: number; max: number }) {
+  const polygonPoints = dimensions
+    .map((dimension, index) => {
+      const ratio = dimension.max > 0 ? dimension.val / dimension.max : 0;
+      const point = wheelPoint(index, dimensions.length, 24 + ratio * 62);
+      return `${point.x.toFixed(1)},${point.y.toFixed(1)}`;
+    })
+    .join(" ");
+  const rings = [0.34, 0.67, 1];
+
+  return (
+    <div className="vn-score-wheel" role="img" aria-label={`진단 점수 총 ${total}점, 6개 핵심 신호 분포`}>
+      <div className="vn-score-wheel-figure">
+        <svg className="vn-score-wheel-svg" viewBox="0 0 220 220" aria-hidden="true" focusable="false">
+          {rings.map((ratio) => (
+            <polygon
+              key={ratio}
+              className="vn-score-wheel-ring"
+              points={dimensions.map((_, index) => {
+                const point = wheelPoint(index, dimensions.length, 86 * ratio);
+                return `${point.x.toFixed(1)},${point.y.toFixed(1)}`;
+              }).join(" ")}
+            />
+          ))}
+          {dimensions.map((dimension, index) => {
+            const point = wheelPoint(index, dimensions.length, 86);
+            return (
+              <line
+                key={dimension.key}
+                className="vn-score-wheel-axis"
+                x1="110"
+                y1="110"
+                x2={point.x.toFixed(1)}
+                y2={point.y.toFixed(1)}
+              />
+            );
+          })}
+          <polygon className="vn-score-wheel-value" points={polygonPoints} />
+          {dimensions.map((dimension, index) => {
+            const point = wheelPoint(index, dimensions.length, 86);
+            return (
+              <circle
+                key={`${dimension.key}-dot`}
+                className="vn-score-wheel-dot"
+                cx={point.x.toFixed(1)}
+                cy={point.y.toFixed(1)}
+                r="3.5"
+              />
+            );
+          })}
+        </svg>
+        <div className="vn-score-wheel-center">
+          <span className="vn-tabular">{total}</span>
+          <small>/ {max}</small>
+        </div>
+      </div>
+      <ul className="vn-score-wheel-legend" aria-hidden="true">
+        {dimensions.map((dimension) => (
+          <li key={dimension.key}>
+            <span>{dimension.label}</span>
+            <strong className="vn-tabular">{dimension.val}/{dimension.max}</strong>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -1630,7 +1740,6 @@ function StageTimelineCard({
           <p className="vn-small vn-text-secondary">
             <strong>{detail.productLabel}</strong>
           </p>
-          <p className="vn-micro vn-tabular vn-text-tertiary">{detail.gauge}</p>
         </div>
       )}
 
@@ -1703,6 +1812,8 @@ function ResultScreenStage({
     phone: ""
   });
   const [submitted, setSubmitted] = useState(false);
+  const [leadEmailTouched, setLeadEmailTouched] = useState(false);
+  const [leadSubmitAttempted, setLeadSubmitAttempted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const siteMeta = {
     hasOwnSite,
@@ -1715,16 +1826,14 @@ function ResultScreenStage({
   };
   const target = siteMeta.domain || siteMeta.competitors[0] || "도메인 미입력";
   const summary = `${cfg.name} / ${cfg.typeName} / 총점 ${result.T}/14 / ${target}`;
-  const dims = [
-    { label: "디지털 자산", val: result.D, max: 3 },
-    { label: "광고 자립도", val: result.A, max: 2 },
-    { label: "검색 노출", val: result.V, max: 2 },
-    { label: "AI 인식", val: result.R, max: 2 },
-    { label: "AI 인용", val: result.C, max: 2 },
-    { label: "사업 기반", val: result.O, max: 2 },
+  const scoreDimensions = getCoreScoreDimensions(result);
+  const weakestDimension = getWeakestDimension(scoreDimensions);
+  const scoreBreakdownDims = [
+    ...scoreDimensions,
     ...(result.B > 0 ? [{ label: "업종 강점", val: result.B, max: 1 }] : [])
   ];
   const leadEmailError = emailRequirementMessage(form.email);
+  const showLeadEmailError = Boolean(leadEmailError && (leadEmailTouched || leadSubmitAttempted));
   const canSubmit = !leadEmailError;
   const consultationType = "무료 상세 진단";
   const industry = answerIndustry(answers);
@@ -1732,6 +1841,11 @@ function ResultScreenStage({
   const resultHelper = stageResultHelper(stageGrade);
   const barrierCopy = BARRIER_REASON_COPY[result.barrierReason];
   const sensitivityInsight = getSensitivityInsight(result);
+  const nextActionDimension = sensitivityInsight?.dimension ?? weakestDimension.label;
+  const nextActionText = sensitivityInsight?.action ?? weakestDimension.action;
+  const recommendedStart = stageDetail.productLabel
+    .replace("권장 제품 · ", "")
+    .replace("권장 시작점 · ", "");
   const [benchmark, setBenchmark] = useState<DiagnosisBenchmark | null>(null);
   const prevRecord = useMemo<DiagnosisRecord | null>(() => {
     const history = getDiagnosisHistory();
@@ -1764,6 +1878,7 @@ function ResultScreenStage({
 
   async function submitLead(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setLeadSubmitAttempted(true);
     if (!canSubmit || submitting) return;
     setSubmitting(true);
     try {
@@ -1823,12 +1938,6 @@ function ResultScreenStage({
           <h1 className="vn-head vn-section-title">
             {ownerTitle} 사업은 지금 <strong className="vn-text-oak">{currentStageLabel}</strong> 단계입니다.
           </h1>
-          {barrierCopy && (
-            <div className="vn-callout">
-              <p className="vn-micro vn-text-oak">이 단계인 이유</p>
-              <p className="vn-small vn-text-secondary">{barrierCopy}</p>
-            </div>
-          )}
           {prevRecord && gradeDelta !== null && (
             <div className="vn-callout">
               <p className="vn-micro vn-text-tertiary">지난 진단 ({prevRecord.date}) 대비</p>
@@ -1853,11 +1962,58 @@ function ResultScreenStage({
         </div>
 
         <div className="vn-panel-stack">
-          <StageTimeline grade={stageGrade} ownerTitle={ownerTitle} />
+          <div className="vn-card vn-result-overview">
+            <DiagnosisScoreWheel dimensions={scoreDimensions} total={result.T} max={14} />
+            <div className="vn-result-summary">
+              <p className="vn-micro vn-text-oak">핵심 판정</p>
+              <h2 className="vn-click-card-title">{withOwnerTitle(stageDetail.headline, ownerTitle)}</h2>
+              <p className="vn-small vn-text-secondary">
+                긴 설명보다 현재 부족한 신호와 다음 행동을 먼저 봅니다.
+              </p>
+              <div className="vn-result-summary-grid">
+                <div>
+                  <span className="vn-micro vn-text-tertiary">가장 약한 신호</span>
+                  <strong>{weakestDimension.label}</strong>
+                  <p>{weakestDimension.val}/{weakestDimension.max}</p>
+                </div>
+                <div>
+                  <span className="vn-micro vn-text-tertiary">다음 행동</span>
+                  <strong>{nextActionDimension}</strong>
+                  <p>{nextActionText}</p>
+                </div>
+                <div>
+                  <span className="vn-micro vn-text-tertiary">추천 시작점</span>
+                  <strong>{recommendedStart}</strong>
+                  <p>상담에서 실제 범위를 조정합니다.</p>
+                </div>
+              </div>
+              {barrierCopy && (
+                <div className="vn-callout">
+                  <p className="vn-micro vn-text-oak">이 단계인 이유</p>
+                  <p className="vn-small vn-text-secondary">{barrierCopy}</p>
+                </div>
+              )}
+              {sensitivityInsight && (
+                <div className="vn-callout vn-callout-oak">
+                  <p className="vn-micro vn-text-oak">단계 상승 포인트</p>
+                  <p className="vn-small">
+                    <strong>{sensitivityInsight.dimension}</strong>을 개선하면 {DIAGNOSIS_STAGE_DETAILS[sensitivityInsight.newGrade].label}로 올라갑니다.
+                  </p>
+                  <p className="vn-micro vn-text-tertiary">{sensitivityInsight.action}</p>
+                </div>
+              )}
+            </div>
+          </div>
 
-          <div className="vn-card">
+          <details className="vn-card vn-result-context-details">
+            <summary>이전·다음 단계 맥락 보기</summary>
+            <StageTimeline grade={stageGrade} ownerTitle={ownerTitle} />
+          </details>
+
+          <div className="vn-card vn-result-action-card">
+            <p className="vn-micro vn-text-oak">권장 방향</p>
             <h2 className="vn-click-card-title">{cfg.headline}</h2>
-            <p className="vn-body">{cfg.body}</p>
+            <p className="vn-small vn-text-secondary">{cfg.note}</p>
             {result.sensitivity && (
               <div className="vn-callout">
                 <p className="vn-small">대행사에서 결과를 못 받으셨다면, 그건 예산이 부족해서가 아닙니다. 채널과 시스템이 연결되지 않아서입니다.</p>
@@ -1889,22 +2045,13 @@ function ResultScreenStage({
             </ul>
           </div>
 
-          <div className="vn-card">
-            <p className="vn-micro vn-text-tertiary">진단 점수 상세</p>
-            {dims.map((dim) => <ScoreBar key={dim.label} {...dim} />)}
+          <details className="vn-card vn-score-breakdown" open>
+            <summary>점수 세부 보기</summary>
+            {scoreBreakdownDims.map((dim) => <ScoreBar key={dim.label} {...dim} />)}
             <div className="vn-row-between">
               <span className="vn-micro vn-text-tertiary">TOTAL SCORE</span>
               <span className="vn-tabular vn-text-oak">{result.T} <span className="vn-text-tertiary">/ 14</span></span>
             </div>
-            {sensitivityInsight && (
-              <div className="vn-callout vn-callout-oak">
-                <p className="vn-micro vn-text-oak">단계 상승 포인트</p>
-                <p className="vn-small">
-                  <strong>{sensitivityInsight.dimension}</strong>을 개선하면 {DIAGNOSIS_STAGE_DETAILS[sensitivityInsight.newGrade].label}로 올라갑니다.
-                </p>
-                <p className="vn-micro vn-text-tertiary">{sensitivityInsight.action}</p>
-              </div>
-            )}
             {domainCheck && (
               <div className="vn-callout">
                 <p className="vn-micro vn-text-tertiary">도메인 직접 확인 결과</p>
@@ -1923,7 +2070,7 @@ function ResultScreenStage({
                 <strong>{DIAGNOSIS_STAGE_DETAILS[benchmark.mostCommon]?.label ?? benchmark.mostCommon}</strong>
               </p>
             )}
-          </div>
+          </details>
 
           {cfg.showEmail && (
             <form id="diagnosis-lead-form" className="vn-card" onSubmit={(event) => void submitLead(event)}>
@@ -1938,27 +2085,27 @@ function ResultScreenStage({
                       id="diagnosis-lead-email"
                       className="vn-input"
                       type="email"
-                      placeholder="이메일 주소 *"
+                      placeholder="이메일 주소 (상세 진단 회신용)"
                       value={form.email}
                       onChange={(event) => updateForm("email", event.target.value)}
-                      required
-                      aria-invalid={Boolean(leadEmailError)}
-                      aria-describedby={leadEmailError ? "lead-email-error" : undefined}
+                      onBlur={() => setLeadEmailTouched(true)}
+                      aria-invalid={showLeadEmailError}
+                      aria-describedby={showLeadEmailError ? "lead-email-error" : undefined}
                     />
-                    {leadEmailError && <span id="lead-email-error" className="vn-field-error">{leadEmailError}</span>}
+                    {showLeadEmailError && <span id="lead-email-error" className="vn-field-error">{leadEmailError}</span>}
                     <input className="vn-input" type="tel" placeholder="연락처 (선택)" value={form.phone} onChange={(event) => updateForm("phone", event.target.value)} />
                   </div>
-                  {leadEmailError && (
+                  {showLeadEmailError && (
                     <div id="lead-required-errors" className="vn-validation-callout" role="status" aria-live="polite">
-                      <p className="vn-micro vn-text-danger">필수 입력 확인</p>
+                      <p className="vn-micro vn-text-danger">이메일 확인</p>
                       <p className="vn-small">{leadEmailError}</p>
                     </div>
                   )}
                   <button
                     type="submit"
-                    disabled={!canSubmit || submitting}
+                    disabled={submitting}
                     className="vn-btn-primary"
-                    aria-describedby={!canSubmit ? "lead-required-errors" : undefined}
+                    aria-describedby={showLeadEmailError ? "lead-required-errors" : undefined}
                   >
                     {submitting ? "전송 중..." : "상세 진단 신청하기 →"}
                   </button>

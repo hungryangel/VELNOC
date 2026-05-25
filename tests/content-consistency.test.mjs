@@ -83,7 +83,7 @@ test("service labels and plan details use explicit Korean naming", () => {
   assert.match(page, /벨녹 자가 진단 \(5분, 무료\)/);
   assert.match(page, /href: "\/tools\/diagnosis"/);
   assert.match(content, /name:\s*"VELNOC Site"/);
-  assert.match(content, /Site · Retrofit — 기존 사이트 AEO·GEO 세팅 80~150만원 \(1회\)/);
+  assert.match(content, /Site · Retrofit — 기존 홈페이지·랜딩페이지 구조 정비 80~150만원 \(1회\)/);
   assert.match(content, /name:\s*"Seed"/);
   assert.match(content, /Site 구매자 12개월 자동 부여/);
   assert.match(content, /정기 코칭, 콘텐츠 제작, 키워드 전략은 Pulse부터\./);

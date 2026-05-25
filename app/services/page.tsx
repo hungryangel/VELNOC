@@ -35,9 +35,9 @@ function ServiceCard({ service }: { service: (typeof services)[number] }) {
           </div>
           <div>
             <strong>Site · Retrofit</strong>
-            <span>기존 사이트 AEO·GEO 세팅</span>
+            <span>기존 홈페이지·랜딩페이지 구조 정비</span>
             <em>80~150만원 (1회)</em>
-            <p>사이트는 있지만 검색·AI에서 투명 인간인 분께</p>
+            <p>이미 광고·플레이스·랜딩페이지는 있지만 신뢰 출처가 흩어진 분께</p>
           </div>
         </div>
       )}
@@ -74,7 +74,7 @@ function SiteFoundationCard({ service }: { service: ServiceItem }) {
         <p className="micro">STEP 1 · 검색·AI가 읽을 수 있는 기반 세우기</p>
         <div>
           <h3>{service.name}</h3>
-          <p>새로 만들거나, 기존 사이트를 벨녹식으로 다시 정비합니다.</p>
+          <p>새로 만들거나, 기존 홈페이지·랜딩페이지·플레이스 신호를 벨녹식으로 다시 정비합니다.</p>
         </div>
       </div>
       <div className="site-foundation-entry-grid">
@@ -86,9 +86,9 @@ function SiteFoundationCard({ service }: { service: ServiceItem }) {
         </div>
         <div>
           <strong>Site · Retrofit</strong>
-          <span>기존 사이트 AEO·GEO 세팅</span>
+          <span>기존 홈페이지·랜딩페이지 구조 정비</span>
           <em>80~150만원 (1회)</em>
-          <p>사이트는 있지만 검색·AI에서 투명 인간인 분께</p>
+          <p>이미 광고·플레이스·랜딩페이지는 있지만 신뢰 출처가 흩어진 분께</p>
         </div>
       </div>
       <div className="site-foundation-footer">
@@ -114,7 +114,7 @@ export default function ServicesPage() {
       <JsonLd data={servicesJsonLd()} />
       <Hero
         title="자산을 만들고, 매월 살아있게 확인합니다."
-        subtitle="벨녹의 상품 구조는 Site · Seed · Pulse · Signal · Engine으로 이어집니다. 먼저 벨녹 자가 진단으로 지금 단계를 확인하고, 필요한 만큼만 시작합니다."
+        subtitle="기존 광고 운영은 유지해도 됩니다. 벨녹은 광고비 밖에 남는 검색·AI 기반을 먼저 만들고, 필요한 만큼만 운영합니다."
         primary={{ label: "벨녹 자가 진단 시작 →", href: "/tools/diagnosis" }}
       />
 
@@ -124,9 +124,9 @@ export default function ServicesPage() {
         muted
       >
         <p className="lead services-lead">
-          사이트가 없거나, 기존 사이트가 검색과 AI에게 읽히지 않는다면 구독보다 먼저 기반을 세워야 합니다.
+          광고가 고객을 데려오는 동안에도, 홈페이지·랜딩페이지·플레이스 정보는 검색과 AI가 읽을 수 있게 정리되어야 합니다.
           <br />
-          벨녹은 먼저 사업 정보를 구조화하고, 그 위에서 매월의 성장 신호를 관리합니다.
+          벨녹은 먼저 사업 정보와 운영자 전문성, 1차 출처를 구조화하고, 그 위에서 매월의 성장 신호를 관리합니다.
         </p>
         <div className="pricing-flow">
           {siteService && <SiteFoundationCard service={siteService} />}
@@ -139,6 +139,7 @@ export default function ServicesPage() {
             <ul>
               <li>검색·AI에 읽히는 사이트 설계·구축</li>
               <li>schema.org 마크업, NAP 일관성, sitemap·robots.txt·llms.txt 구조화</li>
+              <li>운영자 정체성·전문성·1차 출처가 드러나는 정보 구조</li>
               <li><strong>12개월 Seed 동행</strong> — 매월 자동 리포트로 사이트가 살아있는지 추적</li>
               <li>사이트 1주년 점검 콜 30분</li>
             </ul>
@@ -170,7 +171,7 @@ export default function ServicesPage() {
           <div className="card body-copy">
             <h3>왜 이 스택인가요</h3>
             <p><strong>서버 사이드 렌더링</strong><br />ChatGPT·Perplexity 같은 AI 크롤러는 무거운 JavaScript가 로드되기를 끝까지 기다리지 않습니다. Next.js는 페이지를 미리 만들어두는 방식이라 AI가 첫 응답에서 바로 텍스트를 읽습니다.</p>
-            <p><strong>정확한 schema.org 마크업</strong><br />사업 정보(이름·위치·서비스·가격·운영자)를 AI가 읽을 언어로 번역하는 작업입니다. Next.js는 페이지 타입별 schema를 코드로 한 번 정의해 모든 페이지에 일관 적용합니다.</p>
+            <p><strong>정확한 schema.org 마크업</strong><br />사업 정보(이름·위치·서비스·가격·운영자 정체성)를 AI가 읽을 언어로 번역하는 작업입니다. Next.js는 페이지 타입별 schema를 코드로 한 번 정의해 모든 페이지에 일관 적용합니다.</p>
             <p><strong>우리가 쓰는 도구로 만듭니다</strong><br />velnoc.com 자체도 같은 스택으로 만들어졌습니다. 우리가 매일 굴리는 도구로 고객 사이트도 만든다는 것이 가장 정직한 약속입니다.</p>
           </div>
         </div>
@@ -178,7 +179,7 @@ export default function ServicesPage() {
 
       <Section eyebrow="SITE · RETROFIT" title="이미 사이트가 있으신가요? — Site · Retrofit">
         <div className="card body-copy">
-          <p>기존 사이트가 검색·AI에서 보이지 않는다면, 새로 만들 필요 없습니다. 지금 사이트의 구조에 SEO·AEO·GEO 세팅을 더하는 1회 작업입니다.</p>
+          <p>기존 홈페이지, 광고 랜딩페이지, 플레이스 정보가 흩어져 있다면 새로 만들기 전에 먼저 정비할 수 있습니다. Retrofit은 지금 있는 구조에 검색·AI가 읽을 수 있는 신뢰 신호를 더하는 1회 작업입니다.</p>
           <div className="grid-2 service-detail-grid">
             <div>
               <h3>Retrofit이 다루는 것</h3>
@@ -188,7 +189,7 @@ export default function ServicesPage() {
                 <li>메타·OG 태그 정리</li>
                 <li>sitemap.xml · robots.txt · llms.txt 점검·생성</li>
                 <li>1차 출처 연결 (Google Business Profile · 네이버 플레이스 · 디렉토리)</li>
-                <li>운영자 정체성 콘텐츠 1~2건 (About · 운영자 이야기)</li>
+                <li>전문성·자격·운영자 정체성 콘텐츠 1~2건 (About · 운영자 이야기)</li>
                 <li>T0 베이스라인 측정 1회 + 12개월 Seed 동행</li>
               </ul>
             </div>
@@ -235,7 +236,7 @@ export default function ServicesPage() {
         muted
       >
         <p className="lead services-lead">
-          검색 순위, AI 인용, 콘텐츠 신호는 매월 바뀝니다.
+          광고 대행사의 운영과 경쟁하는 서비스가 아닙니다. 광고가 만드는 유입 밖에, 검색 순위와 AI 인용, 콘텐츠 신호는 매월 따로 쌓여야 합니다.
           <br />
           벨녹 구독은 만들어진 사이트가 방치되지 않고, 검색과 AI 안에서 계속 움직이도록 관리하는 운영 방식입니다.
         </p>

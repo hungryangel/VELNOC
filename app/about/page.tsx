@@ -14,7 +14,7 @@ export default function AboutPage() {
         title="어느 한 분야에 갇히지 않기 위해, 모든 분야를 통과해 왔습니다."
         subtitle="벨녹은 단편적 외주·대행이 아닌, 비즈니스 전체 구조를 조망하고 최적화하는 통합형 아키텍트입니다."
       />
-      <Section title="학벌도, 전 직장도, 자격증도 — 그것이 사장님의 병목을 풀어주지 않습니다." narrow>
+      <Section title="학벌도, 전 직장도, 자격증도 — 그것이 고객의 병목을 풀어주지 않습니다." narrow>
         <div className="body-copy" style={{ display: "grid", gap: "var(--space-4)" }}>
           <p>&quot;OO 출신&quot;이라는 타이틀은 시간이 멈춘 좌표입니다. 1년을 다녀도 OO 출신이고, 10년을 다녀도 OO 출신입니다.</p>
           <p>벨녹은 학벌·이력으로 자신을 증명하지 않습니다. 어떤 문제를 어떻게 풀었는가 — 그 결과물로만 이야기합니다.</p>

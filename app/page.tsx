@@ -10,10 +10,10 @@ import { buildMetadata } from "@/lib/site";
 export const metadata: Metadata = buildMetadata("home");
 
 const problemItems = [
-  "광고를 멈추면, 그 달 매출이 바로 줄어든다",
-  "마케팅·개발·디자인을 각자 따로 발주하고, 사이를 사장님이 직접 연결한다",
-  "우리 가게·브랜드를 검색해도 우리 사이트가 먼저 나오지 않는다",
-  "ChatGPT에 우리 업종을 물어보면 경쟁사만 나온다",
+  "광고를 잠시 줄이면, 신규 문의와 매출이 바로 흔들린다",
+  "마케팅·개발·디자인을 따로 맡기고, 내부에서 직접 연결한다",
+  "우리 브랜드·기관명을 검색해도 공식 사이트가 먼저 보이지 않는다",
+  "ChatGPT에 우리 업종을 물어보면 경쟁사나 플랫폼만 나온다",
   "매월 콘텐츠는 올리는데, 자산이 쌓이는 느낌은 들지 않는다"
 ];
 
@@ -78,7 +78,7 @@ export default function HomePage() {
             <h2>이런 상황, 있으신가요?</h2>
           </div>
           <p className="lead reveal-order-1" data-reveal-child>
-            하나라도 해당된다면, 지금 사업 구조가 매출을 광고에 묶어두고 있다는 신호입니다.
+            하나라도 해당된다면, 지금 사업 구조가 문의와 매출을 광고에만 묶어두고 있다는 신호입니다.
           </p>
           <div className="problem-checklist problem-step-list">
             {problemItems.map((item, index) => (
@@ -145,9 +145,9 @@ export default function HomePage() {
             어디 단계인지 모르시면 먼저 → <a href="/tools/diagnosis">벨녹 자가 진단 (5분, 무료)</a>
           </p>
           <p className="lead services-lead reveal-order-1" data-reveal-child>
-            먼저 검색과 AI가 읽을 수 있는 기반을 세우고, 그 위에서 매월의 성장 강도를 선택합니다.
+            기존 광고 운영은 유지해도 됩니다. 다만 광고비 밖에 남는 검색·AI 기반이 필요합니다.
             <br />
-            벨녹 5단계가 위치를 보여줬다면, 상품 구조는 그 단계에서 무엇이 움직이는가를 책임집니다.
+            먼저 홈페이지·랜딩페이지·플레이스 신호를 정리하고, 그 위에서 매월의 성장 강도를 선택합니다.
           </p>
           <div className="home-services-flow">
             {siteService && (
@@ -156,7 +156,7 @@ export default function HomePage() {
                   <p className="micro">STEP 1 · 검색·AI가 읽을 수 있는 기반 세우기</p>
                   <div>
                     <h3>{siteService.name}</h3>
-                    <p>새로 만들거나, 기존 사이트를 벨녹식으로 다시 정비합니다.</p>
+                    <p>새로 만들거나, 기존 홈페이지·랜딩페이지·플레이스 신호를 벨녹식으로 다시 정비합니다.</p>
                   </div>
                 </div>
                 <div className="site-foundation-entry-grid">
@@ -168,9 +168,9 @@ export default function HomePage() {
                   </div>
                   <div>
                     <strong>Site · Retrofit</strong>
-                    <span>기존 사이트 AEO·GEO 세팅</span>
+                    <span>기존 홈페이지·랜딩페이지 구조 정비</span>
                     <em>80~150만원 (1회)</em>
-                    <p>사이트는 있지만 검색·AI에서 투명 인간인 분께</p>
+                    <p>이미 광고·플레이스·랜딩페이지는 있지만 신뢰 출처가 흩어진 분께</p>
                   </div>
                 </div>
                 <div className="site-foundation-footer">
