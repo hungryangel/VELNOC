@@ -8,6 +8,8 @@ const aboutPage = readFileSync("app/about/page.tsx", "utf8");
 const faqPage = readFileSync("app/faq/page.tsx", "utf8");
 const servicesPage = readFileSync("app/services/page.tsx", "utf8");
 const layout = readFileSync("app/layout.tsx", "utf8");
+const footer = readFileSync("components/layout/Footer.tsx", "utf8");
+const styles = readFileSync("styles/globals.css", "utf8");
 const content = readFileSync("lib/content.ts", "utf8");
 const site = readFileSync("lib/site.tsx", "utf8");
 const allText = [page, casesPage, aboutPage, faqPage, servicesPage, content, site].join("\n");
@@ -121,8 +123,15 @@ test("global JSON-LD connects the existing Organization to a WebSite graph", () 
   assert.match(site, /publisher:\s*\{\s*"@id":\s*"https:\/\/velnoc\.com\/#org"\s*\}/);
 });
 
-test("footer exposes VELNOC Works as a followed brand-family link", () => {
-  assert.match(site, /label:\s*"벨녹웍스 — 홈페이지 제작"/);
-  assert.match(site, /href:\s*"https:\/\/site\.velnoc\.com"/);
+test("footer exposes VELNOC Works as a separated service link", () => {
+  const serviceGroup = site.match(/title:\s*"서비스"[\s\S]*?title:\s*"회사"/)?.[0] ?? "";
+  const contactGroup = site.match(/title:\s*"연락"[\s\S]*?\n\s+\}\n\];/)?.[0] ?? "";
+
+  assert.match(serviceGroup, /label:\s*"벨녹웍스 — 홈페이지 제작"/);
+  assert.match(serviceGroup, /href:\s*"https:\/\/site\.velnoc\.com"/);
+  assert.match(serviceGroup, /separateBefore:\s*true/);
+  assert.doesNotMatch(contactGroup, /벨녹웍스/);
+  assert.match(footer, /link\.separateBefore \? "footer-link footer-link-separated" : "footer-link"/);
+  assert.match(styles, /\.footer-link-separated\s*\{[\s\S]*border-top:\s*0\.5px solid var\(--velnoc-divider\)/);
   assert.doesNotMatch(site, /nofollow/);
 });

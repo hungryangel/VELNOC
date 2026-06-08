@@ -10,7 +10,11 @@ export function Footer() {
             <div key={group.title}>
               <h2 className="footer-title">{group.title}</h2>
               {group.links.map((link) => (
-                <Link key={`${group.title}-${link.label}`} href={link.href} className="footer-link">
+                <Link
+                  key={`${group.title}-${link.label}`}
+                  href={link.href}
+                  className={link.separateBefore ? "footer-link footer-link-separated" : "footer-link"}
+                >
                   {link.label}
                 </Link>
               ))}

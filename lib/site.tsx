@@ -2,20 +2,32 @@ import type { Metadata } from "next";
 
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://velnoc.com";
 
+type FooterLink = {
+  label: string;
+  href: string;
+  separateBefore?: boolean;
+};
+
+type FooterGroup = {
+  title: string;
+  links: FooterLink[];
+};
+
 export const navItems = [
   { label: "서비스", href: "/services" },
   { label: "케이스", href: "/cases" },
   { label: "진단", href: "/tools/diagnosis" }
 ];
 
-export const footerGroups = [
+export const footerGroups: FooterGroup[] = [
   {
     title: "서비스",
     links: [
       { label: "구독", href: "/services#subscribe" },
       { label: "Site", href: "/services#site" },
       { label: "Studio", href: "/services#studio" },
-      { label: "OS", href: "/services#os" }
+      { label: "OS", href: "/services#os" },
+      { label: "벨녹웍스 — 홈페이지 제작", href: "https://site.velnoc.com", separateBefore: true }
     ]
   },
   {
@@ -39,8 +51,7 @@ export const footerGroups = [
     title: "연락",
     links: [
       { label: "Contact", href: "/contact" },
-      { label: "카카오톡", href: process.env.NEXT_PUBLIC_KAKAO_CHANNEL_URL || "/contact" },
-      { label: "벨녹웍스 — 홈페이지 제작", href: "https://site.velnoc.com" }
+      { label: "카카오톡", href: process.env.NEXT_PUBLIC_KAKAO_CHANNEL_URL || "/contact" }
     ]
   }
 ];
