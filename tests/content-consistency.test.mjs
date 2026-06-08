@@ -7,6 +7,7 @@ const casesPage = readFileSync("app/cases/page.tsx", "utf8");
 const aboutPage = readFileSync("app/about/page.tsx", "utf8");
 const faqPage = readFileSync("app/faq/page.tsx", "utf8");
 const servicesPage = readFileSync("app/services/page.tsx", "utf8");
+const layout = readFileSync("app/layout.tsx", "utf8");
 const content = readFileSync("lib/content.ts", "utf8");
 const site = readFileSync("lib/site.tsx", "utf8");
 const allText = [page, casesPage, aboutPage, faqPage, servicesPage, content, site].join("\n");
@@ -91,4 +92,37 @@ test("service labels and plan details use explicit Korean naming", () => {
   assert.doesNotMatch(site, /label:\s*"Subscribe"/);
   assert.doesNotMatch(site, /AlphaBridge/);
   assert.doesNotMatch(site, /왜 1\.5~2배 가격인가/);
+});
+
+test("root metadata includes the requested Naver site verification tag", () => {
+  assert.match(layout, /verification:\s*\{\s*other:\s*\{\s*"naver-site-verification":\s*"e45f8581b78d59204eda9eecc7f180ef6bed5e76"/s);
+});
+
+test("root layout renders global JSON-LD in the document head", () => {
+  assert.match(layout, /<head>\s*<JsonLd data=\{organizationJsonLd\(\)\} \/>\s*<\/head>/);
+});
+
+test("global JSON-LD connects the existing Organization to a WebSite graph", () => {
+  assert.match(site, /"@graph":\s*\[/);
+  assert.match(site, /"@type":\s*"Organization"/);
+  assert.match(site, /"@id":\s*"https:\/\/velnoc\.com\/#org"/);
+  assert.match(site, /name:\s*"VELNOC"/);
+  assert.match(site, /alternateName:\s*"벨녹"/);
+  assert.match(site, /url:\s*SITE_URL/);
+  assert.match(site, /logo:\s*`\$\{SITE_URL\}\/logo\.png`/);
+  assert.match(site, /founder:\s*\{[\s\S]*"@type":\s*"Person"[\s\S]*name:\s*"안상효"[\s\S]*jobTitle:\s*"Founder & Business Architect"[\s\S]*\}/);
+  assert.match(site, /foundingDate:\s*"2026"/);
+  assert.match(site, /description:\s*"벨녹은 SEO·AEO·GEO와 운영 자동화를 묶어 매월 자라는 비즈니스 시스템을 설계하는 통합형 아키텍트입니다\."/);
+  assert.match(site, /"@type":\s*"WebSite"/);
+  assert.match(site, /"@id":\s*"https:\/\/velnoc\.com\/#website"/);
+  assert.match(site, /url:\s*"https:\/\/velnoc\.com"/);
+  assert.match(site, /name:\s*"VELNOC"/);
+  assert.match(site, /inLanguage:\s*"ko-KR"/);
+  assert.match(site, /publisher:\s*\{\s*"@id":\s*"https:\/\/velnoc\.com\/#org"\s*\}/);
+});
+
+test("footer exposes VELNOC Works as a followed brand-family link", () => {
+  assert.match(site, /label:\s*"벨녹웍스 — 홈페이지 제작"/);
+  assert.match(site, /href:\s*"https:\/\/site\.velnoc\.com"/);
+  assert.doesNotMatch(site, /nofollow/);
 });

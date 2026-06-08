@@ -19,6 +19,11 @@ export const metadata: Metadata = {
       ko: SITE_URL,
       en: `${SITE_URL}/en`
     }
+  },
+  verification: {
+    other: {
+      "naver-site-verification": "e45f8581b78d59204eda9eecc7f180ef6bed5e76"
+    }
   }
 };
 
@@ -31,8 +36,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko">
-      <body>
+      <head>
         <JsonLd data={organizationJsonLd()} />
+      </head>
+      <body>
         <div className="vn-root site-shell">
           <Header />
           <main className="main">{children}</main>

@@ -39,7 +39,8 @@ export const footerGroups = [
     title: "연락",
     links: [
       { label: "Contact", href: "/contact" },
-      { label: "카카오톡", href: process.env.NEXT_PUBLIC_KAKAO_CHANNEL_URL || "/contact" }
+      { label: "카카오톡", href: process.env.NEXT_PUBLIC_KAKAO_CHANNEL_URL || "/contact" },
+      { label: "벨녹웍스 — 홈페이지 제작", href: "https://site.velnoc.com" }
     ]
   }
 ];
@@ -157,19 +158,32 @@ export function buildMetadata(key: keyof typeof pageMeta): Metadata {
 export function organizationJsonLd() {
   return {
     "@context": "https://schema.org",
-    "@type": "Organization",
-    name: "VELNOC",
-    alternateName: "벨녹",
-    url: SITE_URL,
-    logo: `${SITE_URL}/logo.png`,
-    founder: {
-      "@type": "Person",
-      name: "안상효",
-      jobTitle: "Founder & Business Architect"
-    },
-    foundingDate: "2026",
-    description: "벨녹은 SEO·AEO·GEO와 운영 자동화를 묶어 매월 자라는 비즈니스 시스템을 설계하는 통합형 아키텍트입니다.",
-    sameAs: []
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://velnoc.com/#org",
+        name: "VELNOC",
+        alternateName: "벨녹",
+        url: SITE_URL,
+        logo: `${SITE_URL}/logo.png`,
+        founder: {
+          "@type": "Person",
+          name: "안상효",
+          jobTitle: "Founder & Business Architect"
+        },
+        foundingDate: "2026",
+        description: "벨녹은 SEO·AEO·GEO와 운영 자동화를 묶어 매월 자라는 비즈니스 시스템을 설계하는 통합형 아키텍트입니다.",
+        sameAs: []
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://velnoc.com/#website",
+        url: "https://velnoc.com",
+        name: "VELNOC",
+        inLanguage: "ko-KR",
+        publisher: { "@id": "https://velnoc.com/#org" }
+      }
+    ]
   };
 }
 
